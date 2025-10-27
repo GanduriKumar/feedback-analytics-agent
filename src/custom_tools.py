@@ -36,19 +36,9 @@ def clean_reviews(reviews) -> list:
     from nltk.tokenize import sent_tokenize
 
     # extract titles, contents from posts
-    review_titles   = [review['post_title'] for review in reviews]
-    review_contents = [review['self_text'] for review in reviews]
+    combined_reviews = [f"{review['post_title']}.{review['self_text']}" for review in reviews]
+    reviews = [sent_tokenize(content) for content in combined_reviews]
 
-    # break down the titles and contents into independent sentences
-    titles_list = [sent_tokenize(title) for title in review_titles]
-    contents_list = [sent_tokenize(content) for content in review_contents]
-    titles = [[re.sub(r'[^A-Za-z0-9 ]+', '', item) for item in sub_list] for sub_list in titles_list ]
-    contents = [[re.sub(r'[^A-Za-z0-9 ]+', '', item) for item in sub_list] for sub_list in contents_list ]
+    cleaned_reviews = [re.sub(r'[^A-Za-z0-9 ]+', '', item) for review in reviews for item in review]
 
-    print(f"titles: ", titles)
-    print(f"contents: ", contents)
-    # create a combined list
-    combined_list = titles+contents
-    print(combined_list)
-
-    return combined_list
+    return cleaned_reviews
