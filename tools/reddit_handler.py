@@ -21,9 +21,11 @@ class RedditHandler:
         self.client_secret = os.getenv('REDDIT_CLIENT_SECRET')
         self.client_useragent = os.getenv('REDDIT_USER_AGENT')
         self.client_searchqueries = queries
-        self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
+        # self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
+        self.subreddits = ["GooglePixel", "Pixel"]
+    # -----------------------------------------------------------------
 
-# -----------------------------------------------------------------
+    # -----------------------------------------------------------------
 
 # -----------------------------------------------------------------
     def getRedditInstance(self):
@@ -46,7 +48,7 @@ class RedditHandler:
 # -----------------------------------------------------------------
 
 # -----------------------------------------------------------------
-    def fetch_posts(self):
+    def fetch_posts(self) ->list :
         """
         Extracted post, saves to csv and json files
         :return: list of extracted posts for a given list of search strings
@@ -95,5 +97,6 @@ class RedditHandler:
             csv_filename = "all_posts.csv"
             df.to_json(json_filename, index=False, )
             df.to_csv(csv_filename,index=False,quoting=csv.QUOTE_ALL,quotechar='"')
+
         return all_posts
 #-----------------------------------------------------------------

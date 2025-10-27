@@ -1,6 +1,6 @@
 import pandas as pd
-import dotenv, os, csv
-from custom_llm import LLMModel
+import dotenv, csv
+from src.custom_llm import CustomLLMModel
 
 
 
@@ -8,7 +8,7 @@ class GenerateSearchQueries:
 
     def __init__(self):
         dotenv.load_dotenv()
-        self.model = LLMModel()
+        self.model = CustomLLMModel()
         self.client = self.model.getclientinterface()
         self.keyphrases = (
                 f"Pixel vs iPhone comparison"

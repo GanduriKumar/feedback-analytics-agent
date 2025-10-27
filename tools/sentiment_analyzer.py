@@ -57,7 +57,7 @@ class SentimentAnalyzer():
                     }
                 )
                 # print(self.neutral_sentiments)
-            elif sentiment_score >-0.1 and sentiment_score < 0.1:
+            elif -0.1 < sentiment_score < 0.1:
                 self.neutral_sentiments += 1
                 self.neutral_comments.append(
                     {
@@ -76,6 +76,7 @@ class SentimentAnalyzer():
                 )
             #     print(f"Subjectivity of unclassified review: {sentiment.subjectivity}")
         self.saveSentimentsToFile()
+
 
     def saveSentimentsToFile(self):
         """

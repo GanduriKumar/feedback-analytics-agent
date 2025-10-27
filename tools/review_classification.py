@@ -1,4 +1,4 @@
-from custom_llm import LLMModel
+from src.custom_llm import CustomLLMModel
 import pandas as pd
 import os, dotenv, csv
 from pydantic import BaseModel
@@ -39,7 +39,7 @@ class ReviewClassifier:
 
     def __init__(self):
         dotenv.load_dotenv()
-        self.model = LLMModel()
+        self.model = CustomLLMModel()
         # self.client = self.model.getclientinterface()
         self.MODEL = os.getenv('INFERENCE_MODEL')
         self.classification_labels = ["Audio","Watch","Bluetooth", "Wi-Fi", "CarKit", "Other"]
@@ -145,7 +145,7 @@ class ReviewClassifier:
         classification = {}
         # print("Entering classification")
         # for comment in comment_list:
-        model = LLMModel()
+        model = CustomLLMModel()
         client = model.getclientinterface()
         # print("Classification started")
         # classifier = client.generate(

@@ -7,7 +7,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from ollama import Client
 # from custom_configs import OUTPUT_FORMAT, MODEL_TEMPERATURE
 
-class LLMModel:
+class CustomLLMModel:
     """
     This class defines a custom model for use with Ollama
     --------------------------------------------------------
