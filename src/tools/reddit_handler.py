@@ -20,7 +20,7 @@ class RedditHandler:
         self.client_id = os.getenv('REDDIT_CLIENT_ID')
         self.client_secret = os.getenv('REDDIT_CLIENT_SECRET')
         self.client_useragent = os.getenv('REDDIT_USER_AGENT')
-        self.client_searchqueries = queries
+        self.client_search_queries = queries
         # self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
         self.subreddits = ["GooglePixel", "Pixel"]
     # -----------------------------------------------------------------
@@ -59,7 +59,7 @@ class RedditHandler:
             reddit = self.getRedditInstance()
             for subreddit in self.subreddits:
                 # reddit = self.getRedditInstance()
-                for query in self.client_searchqueries:
+                for query in self.client_search_queries:
                     print(f"\nSearching in r/{subreddit} for posts related to: '{query}'")
                     # reddit = self.getRedditInstance()
                     subreddit_instance = reddit.subreddit(subreddit)
@@ -67,9 +67,10 @@ class RedditHandler:
                         # query=self.client_searchqueries,
                         query=f"self_text:{query}",
                         time_filter=os.getenv('TIME_FILTER'),
-                        limit=int(os.getenv('NUM_POSTS')),
+                        # limit=int(os.getenv('NUM_POSTS')),
+                        limit=None ,
                         sort="relevance",
-                        syntax="lucene"
+                        syntax="lucene",
                     )
                     # print(len(posts))
 
