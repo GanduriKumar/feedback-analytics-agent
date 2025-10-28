@@ -1,4 +1,4 @@
-from src.custom_llm import CustomLLMModel
+from src.utilities.custom_llm import CustomLLMModel
 import pandas as pd
 import os, dotenv, csv
 from pydantic import BaseModel
