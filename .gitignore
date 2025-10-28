@@ -8,8 +8,8 @@ __pycache__/
 
 *.csv
 *.json
-*.xml
-*.iml
+.idea/
+
 
 # Distribution / packaging
 .Python
