@@ -1,18 +1,28 @@
-langchain-chroma~=1.0.0
-langchain-ollama~=1.0.0
-langchain-text-splitters~=1.0.0
-nltk~=3.9.2
-ollama~=0.6.0
-pandas~=2.3.3
-praw~=7.8.1
-pydantic~=2.12.3
-python-certifi-win32~=1.6.1
-python-dotenv~=1.2.1
-scikit-learn~=1.7.2
-sentence-transformers~=5.1.2
-sphinx~=8.2.3
-sphinx-autodoc-typehints~=3.5.2
-sumy~=0.11.0
-textblob~=0.19.0
-vaderSentiment~=3.3.2
+# Langchain libraries for various functionalities
+langchain-chroma~=1.0.0  # Chroma integration for Langchain
+langchain-ollama~=1.0.0  # Ollama integration for Langchain
+langchain-text-splitters~=1.0.0  # Text splitting utilities for Langchain
+
+# Natural Language Processing libraries
+nltk~=3.9.2  # Natural Language Toolkit for text processing
+ollama~=0.6.0  # Ollama library for LLM operations
+pandas~=2.3.3  # Data manipulation and analysis library
+
+# Data validation and environment management
+pydantic~=2.12.3  # Data validation and settings management
+python-certifi-win32~=1.6.1  # SSL certificate validation for Windows
+python-dotenv~=1.2.1  # Load environment variables from .env files
+
+# Machine learning and data science libraries
+scikit-learn~=1.7.2  # Machine learning library
+sentence-transformers~=5.1.2  # Sentence embeddings for NLP tasks
+
+# Documentation generation tools
+sphinx~=8.2.3  # Documentation generator
+sphinx-autodoc-typehints~=3.5.2  # Autodoc extension for type hints
+
+# Text summarization and sentiment analysis
+sumy~=0.11.0  # Text summarization library
+textblob~=0.19.0  # Simple NLP library for processing textual data
+vaderSentiment~=3.3.2  # Sentiment analysis tool for social media text
 

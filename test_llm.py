@@ -1,56 +1,49 @@
-import pandas,csv, time
 import pandas as pd
+import csv
+import time
 
 from src.init.custom_tools import fetch_reddit_reviews, clean_reviews
 from src.tools.theme_issue_classifier import ThemeClassifier
 from src.tools.review_clustering import assess_clusters
 
-
-#----fetching posts ------
+# Fetching Reddit posts and converting to DataFrame
 reviews = fetch_reddit_reviews()
-df = pandas.DataFrame(reviews)
-json_filename = "all_posts.json"
-csv_filename = "all_posts.csv"
-df.to_json(json_filename, index=False, )
-df.to_csv(csv_filename,index=False,quoting=csv.QUOTE_ALL,quotechar='"')
+df = pd.DataFrame(reviews)
 
-#----cleaning and summarizing ------
+# Saving raw reviews to JSON and CSV
+df.to_json("all_posts.json", index=False)
+df.to_csv("all_posts.csv", index=False, quoting=csv.QUOTE_ALL, quotechar='"')
+
+# Cleaning and summarizing reviews
 summarized_reviews = clean_reviews(reviews)
-# summarized_reviews = summarize_reviews(detailed_reviews)
+df_summarized = pd.DataFrame(summarized_reviews)
 
-df = pandas.DataFrame(summarized_reviews)
-json_filename = "summaries.json"
-csv_filename = "summaries.csv"
-df.to_json(json_filename, index=False, )
-df.to_csv(csv_filename,index=False,quoting=csv.QUOTE_ALL,quotechar='"')
+# Saving summarized reviews to JSON and CSV
+df_summarized.to_json("summaries.json", index=False)
+df_summarized.to_csv("summaries.csv", index=False, quoting=csv.QUOTE_ALL, quotechar='"')
 
-
-#---- clustering------
+# Clustering summarized reviews
 start = time.time()
-
 clusters = assess_clusters(summarized_reviews)
-df = pd.DataFrame(clusters)
-json_filename = "clusters.json"
-csv_filename = "clusters.csv"
-df.to_json(json_filename, index=False, )
-df.to_csv(csv_filename,index=False,quoting=csv.QUOTE_ALL,quotechar='"')
+df_clusters = pd.DataFrame(clusters)
 
+# Saving clusters to JSON and CSV
+df_clusters.to_json("clusters.json", index=False)
+df_clusters.to_csv("clusters.csv", index=False, quoting=csv.QUOTE_ALL, quotechar='"')
 end = time.time()
-print(f"time taken for creating the clusters of the reviews", end - start)
+print(f"Time taken for creating the clusters of the reviews: {end - start:.2f} seconds")
 
-
-#----theming ------
-
+# Theming classified reviews
 start = time.time()
 theme_classifier = ThemeClassifier()
 themes = [theme_classifier.extract_themes(review) for review in summarized_reviews]
-df = pandas.DataFrame(themes)
-json_filename = "themes.json"
-csv_filename = "themes.csv"
-df.to_json(json_filename, index=False, )
-df.to_csv(csv_filename,index=False,quoting=csv.QUOTE_ALL,quotechar='"')
+df_themes = pd.DataFrame(themes)
+
+# Saving themes to JSON and CSV
+df_themes.to_json("themes.json", index=False)
+df_themes.to_csv("themes.csv", index=False, quoting=csv.QUOTE_ALL, quotechar='"')
 end = time.time()
-print(f"time taken for classifying the posts", end - start)
+print(f"Time taken for classifying the posts: {end - start:.2f} seconds")
 
 
 
