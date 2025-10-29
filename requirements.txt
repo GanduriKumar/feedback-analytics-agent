@@ -1,3 +1,6 @@
+#FASTAPI libraries for api enablement
+fastapi~=0.120.1
+
 # Langchain libraries for various functionalities
 langchain-chroma~=1.0.0  # Chroma integration for Langchain
 langchain-ollama~=1.0.0  # Ollama integration for Langchain
