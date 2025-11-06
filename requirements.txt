@@ -8,6 +8,7 @@ langchain-ollama~=1.0.0  # Ollama integration for Langchain
 langchain-text-splitters~=1.0.0  # Text splitting utilities for Langchain
 
 # Natural Language Processing libraries
+dspy~=3.0.3
 nltk~=3.9.2  # Natural Language Toolkit for text processing
 ollama~=0.6.0  # Ollama library for LLM operations
 pandas~=2.3.3  # Data manipulation and analysis library

@@ -1,4 +1,4 @@
-from src.utilities.custom_llm import CustomLLMModel
+from src.tools.custom_llm import CustomLLMModel
 from pydantic import BaseModel
 
 class Themes(BaseModel):
@@ -28,12 +28,14 @@ class Themes(BaseModel):
     Example
     -------
     >>> Themes(
+            product ="Pixel9"
     ...     sentiment="negative",
     ...     theme="performance",
     ...     classification="slow_response",
     ...     issue_description="The app takes too long to load the dashboard."
     ... )
     """
+    product :str
     sentiment:str
     theme:str
     classification: str
@@ -59,6 +61,7 @@ class ThemeClassifier:
     extract_themes(review: str) -> dict
         Send the review text to the chat model using the EXTRACT_PROMPT and parse the
         model response into a dictionary with the following keys:
+          - product (str): e,g: "Pixel8", "iPhone10", etc.
           - sentiment (str): e.g., "positive", "negative", "neutral".
           - theme (str): high-level category such as "customer service", "battery", etc.
           - classification (str): intent or message type such as "complaint", "praise".
@@ -94,6 +97,7 @@ class ThemeClassifier:
                                "Review: f'{review}'"
                                "Output example:"
                                ' {'
+                               '  "product": "Pixel 9",'
                                '  "sentiment": "positive",'
                                '  "theme": "customer service",'
                                '  "classification": "complaint",'
@@ -114,6 +118,7 @@ class ThemeClassifier:
               description: Extract theme, sentiment, classification and an issue description from a review.
               input: {"review": "<string>"}
               output: {
+                  "product": "<string|null>",
                   "sentiment": "<string|null>",
                   "theme": "<string|null>",
                   "classification": "<string|null>",
@@ -127,12 +132,14 @@ class ThemeClassifier:
               .content attribute containing the model response (expected to be JSON conforming to Themes schema).
             - Themes.model_json_schema() returns the expected JSON schema to pass as the `format` parameter.
             - Themes.model_validate_json(json_str: str) validates/parses the JSON and returns an object with attributes:
+                - product
                 - sentiment
                 - theme
                 - classification
                 - issue_description
         Returns:
             dict: A dictionary with the following keys:
+                - "product": product name extracted from review text (str or None)
                 - "sentiment": model-derived sentiment (str or None)
                 - "theme": identified theme (str or None)
                 - "classification": issue classification label (str or None)
@@ -148,10 +155,11 @@ class ThemeClassifier:
         Example:
             >>> tool_output = self.extract_themes("The app crashes when I try to upload a file.")
             >>> # tool_output -> {
+            >>> #   "product": "Pixel 8",
             >>> #   "sentiment": "negative",
             >>> #   "theme": "stability",
             >>> #   "classification": "bug",
-            >>> #   "issue_description": "App crashes on file upload"
+            >>> #   "issue_description": "App crash "
             >>> # }
         Notes for agents:
             - This docstring is designed to be machine-readable. Use the Usage block to discover input/output
@@ -163,11 +171,12 @@ class ThemeClassifier:
         )
         result = Themes.model_validate_json(response.content)
         theme = {
+            "product": result.product,
             "sentiment":result.sentiment,
             "theme":result.theme,
             "classification":result.classification,
             "issue_description":result.issue_description,
 
         }
-        # print(theme)
+        print(theme)
         return theme

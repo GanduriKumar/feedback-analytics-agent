@@ -20,9 +20,9 @@ import pandas as pd
 import csv
 import time
 
-from src.init.custom_tools import fetch_reddit_reviews, clean_reviews
-from src.tools.theme_issue_classifier import ThemeClassifier
-from src.tools.review_clustering import assess_clusters
+from src.tools.custom_tools import fetch_reddit_reviews, clean_reviews
+from src.utilities.theme_issue_classifier import ThemeClassifier
+from src.utilities.review_clustering import assess_clusters
 
 app = FastAPI()
 
