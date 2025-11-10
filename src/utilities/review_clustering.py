@@ -1,6 +1,5 @@
-from sentence_transformers import SentenceTransformer
 from sklearn.cluster import KMeans
-import pandas as pd
+from src.tools.custom_llm import CustomLLMModel
 
 class AssessClusters:
     def __init__(self, reviews:list):
@@ -47,9 +46,8 @@ class AssessClusters:
             - Consider making the model and num_clusters injectable for reuse and testing.
             - Use MiniBatchKMeans or HDBSCAN for very large inputs.
         """
-        model = SentenceTransformer("all-MiniLM-L6-V2")
-        embeddings = model.encode(self.reviews)
-
+        embedding_model = CustomLLMModel().create_embedding()
+        embeddings = embedding_model.embed_documents(self.reviews)
         num_clusters = 20
         kmeans = KMeans(n_clusters=num_clusters, random_state=42)
         kmeans.fit(embeddings)

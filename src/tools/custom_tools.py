@@ -23,12 +23,12 @@ def fetch_reddit_reviews()-> list:
         Example:
             reviews = fetch_reddit_reviews()
         """
-    # print("Entered review fetcher")
-    yield "Entered review fetcher <br>"
+    print("Entered review fetcher")
+    # yield "Entered review fetcher <br>"
     df = pandas.read_csv(f"./config/search_queries.csv")
     search_queries = [df['queries'][record] for record in range(0, df['queries'].size)]
-    # print(search_queries)
-    yield search_queries
+    print(search_queries)
+    # yield search_queries
     reddit = RedditHandler(queries=search_queries)
     reviews= reddit.fetch_posts()
     return reviews
