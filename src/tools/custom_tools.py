@@ -15,7 +15,6 @@ def fetch_reddit_reviews()->list:
 
 def clean_reviews(reviews:list) -> list:
     print("Entered the clean reviews")
-    summarizer = ReviewSummarizer()
     combined_reviews = [f"{review['post_title']}.{review['self_text']}" for review in reviews]
     cleaned_reviews = [re.sub(r'[^A-Za-z0-9 ]+', '',review) for review in combined_reviews]
     return cleaned_reviews
