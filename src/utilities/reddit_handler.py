@@ -54,7 +54,8 @@ class RedditHandler:
         
         # Define default subreddits for mobile device feedback analysis
         # self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
-        self.subreddits = ["all"]
+        self.subreddits = json.loads(os.getenv("SUBREDDITS", "[]"))
+
 
 # -----------------------------------------------------------------
 
