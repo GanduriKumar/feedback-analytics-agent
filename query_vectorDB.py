@@ -23,3 +23,6 @@ def query_vector_db(query_text: str, n_results: int = 50):
 
     df = pd.DataFrame(results['documents'][0])
     df.to_csv("search_results.csv", index=False, quoting=csv.QUOTE_ALL, quotechar='"')
+
+if  __name__ == "__main__":
+    query_vector_db("Pixel 10")

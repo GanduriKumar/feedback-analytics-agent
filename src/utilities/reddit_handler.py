@@ -53,8 +53,8 @@ class RedditHandler:
         self.client_search_queries = queries
         
         # Define default subreddits for mobile device feedback analysis
-        self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
-        # self.subreddits = ["all"]
+        # self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
+        self.subreddits = ["all"]
 
 # -----------------------------------------------------------------
 
@@ -147,7 +147,8 @@ class RedditHandler:
                     posts = subreddit_instance.search(
                         query=f"self_text:{query}",  # Search within post body text
                         time_filter=os.getenv('TIME_FILTER'),  # Filter by time period (e.g., 'week')
-                        limit=int(os.getenv('NUM_POSTS')),  # Limit number of results
+                        # limit=int(os.getenv('NUM_POSTS')),  # Limit number of results
+                        limit=None,
                         sort="relevance",  # Sort by relevance to query
                         syntax="lucene"  # Use Lucene query syntax
                     )
