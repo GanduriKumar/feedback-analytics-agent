@@ -7,6 +7,9 @@ langchain-chroma~=1.0.0  # Chroma integration for Langchain
 langchain-ollama~=1.0.0  # Ollama integration for Langchain
 langchain-text-splitters~=1.0.0  # Text splitting utilities for Langchain
 
+#agent orchestration
+langgrapgh~=1.0.3  # Graph-based agent management
+
 # Natural Language Processing libraries
 dspy~=3.0.3
 nltk~=3.9.2  # Natural Language Toolkit for text processing

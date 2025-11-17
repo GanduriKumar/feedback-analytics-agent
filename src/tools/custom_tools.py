@@ -42,7 +42,7 @@ def clean_reviews(reviews:list) -> list:
     strips away special characters, leaving only alphanumeric characters and spaces.
 
     Args:
-        reviews (list): A list of dictionaries where each dictionary represents a review
+        reviews (list): A list where each dictionary represents a review
                        and must contain 'post_title' and 'self_text' keys.
                        Example: [{'post_title': 'Great!', 'self_text': 'Amazing product'}]
 
@@ -211,6 +211,8 @@ def assess_clusters(cleaned_reviews: list) -> dict:
         True
     """
     print("Entered the cluster assessor")
+    # print(type(cleaned_reviews))
+    # print(cleaned_reviews)
     cluster_assessor = AssessClusters(cleaned_reviews)
     clusters = cluster_assessor.assess_clusters()
     return clusters
@@ -249,7 +251,7 @@ def extract_themes(curated_reviews:list)->list:
         - Processing time scales linearly with the number of reviews
         - Each review is processed independently
     """
-    print("Entered the theme extractor")
+    print("Entered the themes extractor")
     theme_classifier = ThemeClassifier()
     themes = [theme_classifier.extract_themes(review) for review in curated_reviews]
     return themes

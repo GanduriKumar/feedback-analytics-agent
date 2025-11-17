@@ -39,7 +39,7 @@ class ReviewSummarizer:
         dspy.configure(lm= dspy.LM('ollama_chat/mistral:latest',api_base='http://localhost:11434',api_key=''))
         summarize = dspy.ChainOfThought('document -> summary')
         response = summarize(document=review)
-        print(response.summary)
+        # print(response.summary)
         return response.summary
 
     def summarize_clusters(self, clusters:dict)->list:

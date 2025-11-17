@@ -1,9 +1,11 @@
 from sklearn.cluster import KMeans
 from src.tools.custom_llm import CustomLLMModel
+import pandas as pd, csv
 
 class AssessClusters:
-    def __init__(self, reviews:list):
+    def __init__(self, reviews:list[str], num_clusters:int=20):
         self.reviews = reviews
+        self.num_clusters = num_clusters
     def assess_clusters(self) -> dict:
         """
         Tool:
@@ -48,8 +50,7 @@ class AssessClusters:
         """
         embedding_model = CustomLLMModel().create_embedding()
         embeddings = embedding_model.embed_documents(self.reviews)
-        num_clusters = 20
-        kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+        kmeans = KMeans(n_clusters=self.num_clusters, random_state=42)
         kmeans.fit(embeddings)
         labels = kmeans.labels_
 
@@ -57,15 +58,15 @@ class AssessClusters:
         for label, review in zip(labels, self.reviews):
             clusters.setdefault(label, []).append(review)
 
-        for cluster_id, cluster_reviews in clusters.items():
-            print(f"Cluster {cluster_id}")
-            for r in cluster_reviews:
-                print(f"- {r}")
+        # for cluster_id, cluster_reviews in clusters.items():
+        #     print(f"Cluster {cluster_id}")
+        #     for r in cluster_reviews:
+        #         print(f"- {r}")
 
 
         # Step 1: Check lengths of each list
         lengths = {key: len(value) for key, value in clusters.items()}
-        print("Lengths of each column:", lengths)
+        # print("Lengths of each column:", lengths)
       # Step 2: Find the maximum length
         max_length = max(lengths.values())
       # Step 3: Pad shorter lists with None
