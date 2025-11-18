@@ -3,12 +3,15 @@ fastapi~=0.120.1
 uvicorn~=0.38.0
 
 # Langchain libraries for various functionalities
+langchain~=1.0.7
+langchain-community~=0.4.1
 langchain-chroma~=1.0.0  # Chroma integration for Langchain
+langchain_core~=1.0.5 # Core functionalities of Langchain
 langchain-ollama~=1.0.0  # Ollama integration for Langchain
 langchain-text-splitters~=1.0.0  # Text splitting utilities for Langchain
 
 #agent orchestration
-langgrapgh~=1.0.3  # Graph-based agent management
+langgraph~=1.0.3  # Graph-based agent management
 
 # Natural Language Processing libraries
 dspy~=3.0.3
@@ -17,6 +20,7 @@ ollama~=0.6.0  # Ollama library for LLM operations
 pandas~=2.3.3  # Data manipulation and analysis library
 
 # Data validation and environment management
+praw~=7.8.1 # Python Reddit API Wrapper
 pydantic~=2.12.3  # Data validation and settings management
 python-certifi-win32~=1.6.1  # SSL certificate validation for Windows
 python-dotenv~=1.2.1  # Load environment variables from .env files
