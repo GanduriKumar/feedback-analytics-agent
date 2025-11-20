@@ -107,7 +107,7 @@ class ThemeClassifier:
                                "Now provide the JSON output for the above review."
                                )
 
-    def extract_themes(self,review:str):
+    def extract_themes(self, review: str):
         """
         Tool: extract_themes
         Short description:
@@ -166,8 +166,25 @@ class ThemeClassifier:
             - This docstring is designed to be machine-readable. Use the Usage block to discover input/output
               shapes. Validate the returned dict keys before using them downstream.
         """
+        # Vulnerability: Direct embedding of unsanitized user input
+        # Add input validation and sanitization
+        
+        # Recommended fix:
+        import re
+        
+        # Sanitize input to prevent prompt injection
+        def sanitize_review(review: str) -> str:
+            # Remove potential prompt injection patterns
+            review = re.sub(r'[^\w\s\.\,\!\?\-]', '', review)
+            # Limit length to prevent token overflow attacks
+            max_length = 5000
+            if len(review) > max_length:
+                review = review[:max_length]
+            return review.strip()
+        
+        sanitized_review = sanitize_review(review)
         response = self.chat.invoke(
-            input=f"{self.EXTRACT_PROMPT}:{review}",
+            input=f"{self.EXTRACT_PROMPT}:{sanitized_review}",
             format = Themes.model_json_schema()
         )
         result = Themes.model_validate_json(response.content)

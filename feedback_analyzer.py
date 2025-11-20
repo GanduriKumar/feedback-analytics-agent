@@ -6,6 +6,8 @@ from query_vectorDB import query_vector_db
 from src.tools.custom_tools import assess_clusters, summarize_clusters, extract_themes
 import pandas as pd
 from typing import Optional
+import os
+from pathlib import Path
 
 # Define the initial state containing user query and extracted reviews
 class InputState(BaseModel):
@@ -347,8 +349,23 @@ def execute_graph_pipeline(user_query: str):
     agent_graph = graph.compile()
 
     # Export the graph visualization for debugging/observability
-    with open("agent_graph.png", "wb") as f:
-        f.write(agent_graph.get_graph().draw_mermaid_png())
+    def secure_file_write(filename: str, data: bytes, mode: str = 'wb'):
+        """Securely write file with proper permissions"""
+        filepath = Path(filename).resolve()
+        
+        # Prevent directory traversal attacks
+        if not filepath.parent.exists():
+            raise ValueError("Invalid file path")
+        
+        # Write with restricted permissions (owner read/write only)
+        with open(filepath, mode) as f:
+            f.write(data)
+        
+        # Set secure file permissions (0o600 = rw-------)
+        os.chmod(filepath, 0o600)
+    
+    # Replace existing file writes with secure version
+    secure_file_write("agent_graph.png", agent_graph.get_graph().draw_mermaid_png())
 
     # Seed initial state for invocation
     initial_state = ThemesState(
