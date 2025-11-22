@@ -285,89 +285,46 @@ def extract_themes_tool(state:SummaryState)->ThemesState:
 
 
 def execute_graph_pipeline(user_query: str):
-    """
-    AI Tool: execute_graph_pipeline
-    Purpose:
-      Orchestrates the end-to-end feedback analysis pipeline using LangGraph:
-      1) query_vector_db -> 2) assess_clusters -> 3) summarize_clusters -> 4) extract_themes.
-      Produces a JSONL file with extracted themes and a PNG graph of the pipeline.
-
-    Parameters:
-      user_query (str): Natural language query describing a product concern/comparison
-                        (e.g., "Pixel battery life vs iPhone").
-
-    Behavior:
-      - Builds a StateGraph with four nodes:
-          - Review_Extractor: fetches relevant reviews from a vector database.
-          - Cluster_Assessor: groups reviews into clusters.
-          - Cluster_Summarizer: generates concise summaries per cluster.
-          - Theme_Extractor: extracts key themes from summaries.
-      - Compiles and invokes the graph with an initial ThemesState containing the user query.
-      - Serializes the resulting themes to `feedback_analysis_results.json` (JSON Lines).
-      - Exports a pipeline diagram to `agent_graph.png`.
-
-    Input/Output Schema:
-      Input: ThemesState(query=str, extracted_reviews=[], clusters={}, cluster_summaries=[], themes=[])
-      Output file: feedback_analysis_results.json (list[dict[str, str]] as JSONL)
-      Output file: agent_graph.png (graph visualization)
-
-    Side Effects:
-      - File I/O: writes PNG and JSONL files in the working directory.
-      - May invoke external systems via query_vector_db and downstream tools.
-
-    Determinism:
-      Non-deterministic due to clustering/LLM components; repeated runs may vary.
-
-    Example:
-      execute_graph_pipeline("Compare camera quality issues between Pixel and iPhone")
-    """
-    # System message for future LLM integration (not used directly here)
+    """Optimized pipeline with secure file operations"""
     sys_msg = (
         "You are a helpful assistant tasked with performing analysis of the product "
         "reviews stored in a vector database. Use the provided tool to query the "
         "database based on user queries."
     )
 
-    # Initialize the state graph with the final state schema
-    # print(f"query string in execute_graph_pipeline: {user_query}")
     graph = StateGraph(ThemesState)
-
-    # Register pipeline stages as nodes
     graph.add_node("Review_Extractor", query_vector_db_tool)
     graph.add_node("Cluster_Assessor", assess_clusters_tool)
     graph.add_node("Cluster_Summarizer", summarize_clusters_tool)
     graph.add_node("Theme_Extractor", extract_themes_tool)
 
-    # Define execution flow
     graph.add_edge(START, "Review_Extractor")
     graph.add_edge("Review_Extractor", "Cluster_Assessor")
     graph.add_edge("Cluster_Assessor", "Cluster_Summarizer")
     graph.add_edge("Cluster_Summarizer", "Theme_Extractor")
     graph.add_edge("Theme_Extractor", END)
 
-    # Compile the graph into an executable agent
     agent_graph = graph.compile()
 
-    # Export the graph visualization for debugging/observability
-    def secure_file_write(filename: str, data: bytes, mode: str = 'wb'):
-        """Securely write file with proper permissions"""
+    # Secure file writing with proper permissions
+    def secure_file_write(filename: str, data: bytes):
+        """Write file with restricted permissions"""
         filepath = Path(filename).resolve()
         
-        # Prevent directory traversal attacks
+        # Prevent directory traversal
         if not filepath.parent.exists():
-            raise ValueError("Invalid file path")
+            raise ValueError(f"Invalid file path: {filepath}")
         
-        # Write with restricted permissions (owner read/write only)
-        with open(filepath, mode) as f:
+        with open(filepath, 'wb') as f:
             f.write(data)
         
-        # Set secure file permissions (0o600 = rw-------)
+        # Set secure permissions (owner read/write only)
         os.chmod(filepath, 0o600)
     
-    # Replace existing file writes with secure version
-    secure_file_write("agent_graph.png", agent_graph.get_graph().draw_mermaid_png())
+    # Use secure write
+    graph_image = agent_graph.get_graph().draw_mermaid_png()
+    secure_file_write("agent_graph.png", graph_image)
 
-    # Seed initial state for invocation
     initial_state = ThemesState(
         query=user_query,
         extracted_reviews=[],
@@ -376,13 +333,15 @@ def execute_graph_pipeline(user_query: str):
         themes=[],
     )
 
-    # Execute the pipeline and collect results
     final_state = agent_graph.invoke(initial_state)
     items_dict = dict(final_state.items())
 
-    # Persist themes as JSON Lines for downstream analytics
+    # Write results securely
     df = pd.DataFrame(items_dict["themes"])
-    df.to_json("feedback_analysis_results.json", orient="records", lines=True)
+    output_file = Path("feedback_analysis_results.json").resolve()
+    df.to_json(output_file, orient="records", lines=True)
+    os.chmod(output_file, 0o600)
+    
     return items_dict["themes"]
 
 if __name__ == "__main__":
