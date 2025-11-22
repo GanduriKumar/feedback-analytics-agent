@@ -4,40 +4,48 @@ An intelligent agent system for extracting actionable intelligence from end-user
 
 ## Overview
 
-This project leverages AI and machine learning to automatically analyze large volumes of user feedback, identify themes, cluster similar reviews, and extract meaningful insights to inform product and business decisions.
+This project leverages AI and machine learning to automatically analyze large volumes of user feedback from Reddit and other sources, identify themes, cluster similar reviews, and extract meaningful insights to inform product and business decisions.
 
 ## Features
 
-- **Automated Data Collection**: Scrape and aggregate feedback from multiple sources
+- **Automated Data Collection**: Scrape and aggregate feedback from Reddit using PRAW
 - **Vector Database Storage**: Store feedback embeddings in ChromaDB for efficient similarity search
-- **Intelligent Clustering**: Group similar feedback using advanced clustering algorithms
-- **Theme Extraction**: Automatically identify recurring themes and topics
-- **Sentiment Analysis**: Analyze sentiment and emotional tone of feedback
-- **AI-Powered Insights**: Generate actionable recommendations using LLM analysis
-- **Custom Pipelines**: Flexible pipeline architecture for custom analysis workflows
+- **Intelligent Clustering**: Group similar feedback using sentence transformers and ML algorithms
+- **Theme Extraction**: Automatically identify recurring themes using LLM-based classification
+- **Sentiment Analysis**: Analyze sentiment and emotional tone using VADER and TextBlob
+- **AI-Powered Insights**: Generate actionable recommendations using LangChain and Ollama
+- **Secure REST API**: FastAPI endpoints with authentication, rate limiting, and audit logging
+- **Custom Pipelines**: Flexible LangGraph-based pipeline architecture for custom analysis workflows
 
 ## Project Structure
 
 ```
 feedback-analytics-agent/
+├── src/
+│   ├── tools/
+│   │   └── custom_tools.py         # Core analysis tools
+│   └── utilities/
+│       ├── reddit_handler.py       # Reddit data collection
+│       └── theme_issue_classifier.py # LLM theme extraction
 ├── chroma_db/                      # ChromaDB vector database storage
-│   └── chroma.sqlite3
-├── custom_apis.py                  # Custom API integrations
+├── custom_apis.py                  # Secure FastAPI endpoints
 ├── custom_pipeline.py              # Custom analysis pipelines
-├── feedback_analysis.py            # Core feedback analysis logic
-├── feedback_analyzer.py            # Main analyzer implementation
+├── feedback_analysis.py            # Simple analysis endpoint
+├── feedback_analyzer.py            # LangGraph-based analyzer
 ├── query_vectorDB.py               # Vector database query interface
-├── review_analyzer_agent.py        # Review analysis agent
+├── review_analyzer_agent.py        # LangChain agent for review analysis
 ├── requirements.txt                # Python dependencies
 ├── .env                           # Environment variables (API keys, etc.)
-└── Data files:
+├── .gitignore                     # Git ignore patterns
+└── Data files (generated):
     ├── all_posts.csv/json         # Raw collected posts
     ├── cleaned_reviews.csv/json   # Preprocessed reviews
     ├── clustered_reviews.csv/json # Clustered feedback data
     ├── clusters.csv/json          # Cluster metadata
     ├── curated_reviews.csv/json   # Curated/filtered reviews
     ├── themes.csv/json            # Extracted themes
-    └── feedback_analysis_results.csv/json  # Final analysis results
+    ├── feedback_analysis_results.csv/json # Final analysis results
+    └── search_results.csv         # Vector DB query results
 ```
 
 ## Installation
@@ -46,7 +54,8 @@ feedback-analytics-agent/
 
 - Python 3.8 or higher
 - pip package manager
-- API keys for LLM services (OpenAI, Anthropic, etc.)
+- Ollama (for local LLM inference)
+- Reddit API credentials (for data collection)
 
 ### Setup
 
@@ -67,145 +76,314 @@ feedback-analytics-agent/
     pip install -r requirements.txt
     ```
 
-4. Configure environment variables:
+4. Install and start Ollama:
     ```bash
-    cp .env.example .env
-    # Edit .env with your API keys and configuration
+    # Visit https://ollama.ai for installation instructions
+    ollama pull llama3.2  # or your preferred model
     ```
 
-Required environment variables:
-- `OPENAI_API_KEY`: Your OpenAI API key
-- `ANTHROPIC_API_KEY`: Your Anthropic API key (if using Claude)
-- Additional API keys as needed
+5. Configure environment variables in `.env`:
+    ```env
+    # Reddit API Configuration
+    REDDIT_CLIENT_ID=your_client_id
+    REDDIT_CLIENT_SECRET=your_client_secret
+    REDDIT_USER_AGENT=FeedbackAnalyzer/1.0
+    
+    # LLM Configuration
+    OLLAMA_MODEL=llama3.2
+    OLLAMA_BASE_URL=http://localhost:11434
+    
+    # Vector Database
+    REVIEW_COLLECTION_NAME=reddit_reviews
+    
+    # API Security (auto-generated if not set)
+    API_KEY=your_secure_api_key
+    
+    # Optional: External LLM APIs
+    OPENAI_API_KEY=your_openai_key
+    ANTHROPIC_API_KEY=your_anthropic_key
+    ```
 
 ## Usage
 
-### Basic Analysis Pipeline
+### 1. Secure REST API (Recommended)
 
-```python
-from feedback_analyzer import FeedbackAnalyzer
+Start the FastAPI server with built-in security:
 
-# Initialize analyzer
-analyzer = FeedbackAnalyzer()
-
-# Load feedback data
-analyzer.load_data('all_posts.csv')
-
-# Run complete analysis pipeline
-results = analyzer.analyze_all()
-
-# Export results
-analyzer.export_results('feedback_analysis_results.json')
+```bash
+python custom_apis.py
 ```
 
-### Query Vector Database
+The API will be available at `http://127.0.0.1:8000` with the following endpoints:
+
+#### Authentication
+All endpoints (except `/health`) require API key authentication via:
+- Header: `X-API-Key: your_api_key`
+- Query parameter: `?x_api_key=your_api_key`
+
+#### Endpoints
+
+**Health Check** (No auth required)
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+**Fetch Raw Reviews**
+```bash
+curl -H "X-API-Key: your_api_key" http://127.0.0.1:8000/reviews
+```
+
+**Get Summarized Reviews**
+```bash
+curl -H "X-API-Key: your_api_key" http://127.0.0.1:8000/summarized_reviews
+```
+
+**Compute Clusters**
+```bash
+curl -H "X-API-Key: your_api_key" http://127.0.0.1:8000/clusters
+```
+
+**Extract Themes**
+```bash
+curl -H "X-API-Key: your_api_key" http://127.0.0.1:8000/themes
+```
+
+API Documentation: `http://127.0.0.1:8000/docs`
+
+### 2. LangGraph Pipeline
+
+Execute the complete analysis pipeline with state management:
 
 ```python
-from query_vectorDB import query_similar_feedback
+from feedback_analyzer import execute_graph_pipeline
 
-# Find similar feedback
-similar = query_similar_feedback(
-    query="battery life issues",
-    n_results=10
+# Run the pipeline with your product query
+user_query = "What are users saying about our mobile app?"
+themes = execute_graph_pipeline(user_query)
+
+# Results saved to feedback_analysis_results.json
+```
+
+### 3. Simple Analysis Endpoint
+
+Run a single-endpoint analysis:
+
+```bash
+python feedback_analysis.py
+```
+
+Then access: `http://127.0.0.1:8000/analyze_feedback`
+
+### 4. LangChain Agent
+
+Use the review analyzer agent for interactive analysis:
+
+```python
+from review_analyzer_agent import main
+
+# Interactive agent-based analysis
+main()
+```
+
+### 5. Vector Database Query
+
+Search for similar feedback using semantic search:
+
+```python
+from query_vectorDB import query_vector_db
+
+# Find similar reviews
+results = query_vector_db(
+    query_text="battery life complaints",
+    n_results=10,
+    output_file="search_results.csv"
 )
 ```
 
-### Custom Analysis Pipeline
+### 6. Custom Pipeline
+
+Build your own analysis workflow:
 
 ```python
 from custom_pipeline import CustomPipeline
 
 # Create custom pipeline
 pipeline = CustomPipeline()
-pipeline.add_step('clean', clean_data)
-pipeline.add_step('cluster', cluster_feedback)
-pipeline.add_step('analyze', analyze_themes)
+pipeline.add_step('collect', fetch_reddit_reviews)
+pipeline.add_step('clean', clean_reviews)
+pipeline.add_step('cluster', assess_clusters)
+pipeline.add_step('analyze', extract_themes)
 
-# Run pipeline
-results = pipeline.execute(data)
-```
-
-### Review Analyzer Agent
-
-```python
-from review_analyzer_agent import ReviewAnalyzerAgent
-
-# Initialize agent
-agent = ReviewAnalyzerAgent()
-
-# Analyze specific reviews
-insights = agent.analyze_reviews(review_ids=[1, 2, 3])
+# Execute pipeline
+results = pipeline.execute()
 ```
 
 ## Core Components
 
 ### 1. Data Collection & Preprocessing
-- **[`custom_apis.py`](custom_apis.py)**: Custom API integrations for data sources
-- Cleans and normalizes feedback text
-- Removes duplicates and irrelevant content
+- **[`src/utilities/reddit_handler.py`](src/utilities/reddit_handler.py)**: Reddit API integration using PRAW
+  - Concurrent post fetching with thread pools
+  - Automatic deduplication
+  - CSV/JSON export with proper quoting
+- **[`src/tools/custom_tools.py`](src/tools/custom_tools.py)**: Core analysis utilities
+  - `fetch_reddit_reviews()`: Collect posts from configured subreddits
+  - `clean_reviews()`: Text preprocessing and normalization
+  - `assess_clusters()`: ML-based review clustering
+  - `summarize_clusters()`: LLM-based cluster summarization
 
 ### 2. Vector Database (ChromaDB)
-- **[`query_vectorDB.py`](query_vectorDB.py)**: Interface for vector similarity search
-- Stores feedback embeddings for efficient retrieval
-- Enables semantic search across feedback
+- **[`query_vectorDB.py`](query_vectorDB.py)**: Semantic similarity search
+  - Custom embedding model integration
+  - Input sanitization and validation
+  - Secure file operations
+  - Configurable result limits (max 1000)
 
 ### 3. Clustering & Theme Extraction
-- Groups similar feedback using clustering algorithms
-- Identifies recurring themes and topics
-- Generates cluster summaries
+- **Clustering**: Uses sentence transformers for semantic grouping
+- **Theme Classification**: [`src/utilities/theme_issue_classifier.py`](src/utilities/theme_issue_classifier.py)
+  - LLM-based theme extraction
+  - Structured output using Pydantic
+  - Async processing support
 
 ### 4. AI-Powered Analysis
-- **[`feedback_analyzer.py`](feedback_analyzer.py)**: Main analysis engine
-- **[`review_analyzer_agent.py`](review_analyzer_agent.py)**: Specialized review analysis
-- Sentiment analysis
-- Root cause identification
-- Actionable insight generation
+- **[`feedback_analyzer.py`](feedback_analyzer.py)**: LangGraph state machine
+  - Multi-node analysis pipeline
+  - State persistence between steps
+  - Secure file operations with restricted permissions
+- **[`review_analyzer_agent.py`](review_analyzer_agent.py)**: LangChain agent
+  - Tool-based architecture
+  - JSON response validation
+  - Environment variable validation
 
-### 5. Custom Pipelines
-- **[`custom_pipeline.py`](custom_pipeline.py)**: Extensible pipeline framework
-- Build custom analysis workflows
-- Chain multiple analysis steps
+### 5. Secure API Layer
+- **[`custom_apis.py`](custom_apis.py)**: Production-ready FastAPI server
+  - **Security Features**:
+    - API key authentication (header + query param)
+    - Rate limiting (10 requests/60s per IP)
+    - Request logging and audit trail
+    - Path traversal prevention
+    - Secure file permissions (0o600)
+    - Input sanitization
+  - **Async Processing**: Thread pool execution for blocking operations
+  - **Error Handling**: Comprehensive exception handling with proper HTTP status codes
 
 ## Data Flow
 
 ```
-Raw Feedback (all_posts.csv)
+User Query
     ↓
-Cleaning & Preprocessing (cleaned_reviews.csv)
+Reddit Data Collection (all_posts.csv/json)
     ↓
-Vector Embedding & Storage (chroma_db/)
+Text Cleaning & Preprocessing (cleaned_reviews.csv/json)
     ↓
-Clustering (clustered_reviews.csv, clusters.csv)
+Vector Embedding & ChromaDB Storage
     ↓
-Theme Extraction (themes.csv)
+ML-Based Clustering (clustered_reviews.csv/json, clusters.csv/json)
     ↓
-AI Analysis & Insights (feedback_analysis_results.csv)
+Cluster Summarization (curated_reviews.csv/json)
     ↓
-Actionable Recommendations
+LLM Theme Extraction (themes.csv/json)
+    ↓
+Final Analysis Results (feedback_analysis_results.csv/json)
+    ↓
+Actionable Insights & Recommendations
 ```
 
 ## Output Files
 
+All output files are generated in both CSV and JSON formats:
+
+- **`all_posts.csv/json`**: Raw Reddit posts with metadata
 - **`cleaned_reviews.csv/json`**: Preprocessed and normalized feedback
 - **`clustered_reviews.csv/json`**: Feedback with cluster assignments
 - **`clusters.csv/json`**: Cluster metadata and summaries
-- **`themes.csv/json`**: Extracted themes with frequencies
-- **`curated_reviews.csv/json`**: High-quality, curated feedback
-- **`feedback_analysis_results.csv/json`**: Complete analysis results with insights
+- **`curated_reviews.csv/json`**: High-quality, representative reviews per cluster
+- **`themes.csv/json`**: Extracted themes with categories and frequencies
+- **`feedback_analysis_results.csv/json`**: Complete analysis with insights
+- **`search_results.csv`**: Vector database query results
+
+**Security**: All files are written with restricted permissions (owner read/write only, chmod 0o600)
 
 ## Configuration
 
-Configuration options can be set in [`.env`](.env) or passed programmatically:
+### Environment Variables
+
+Configure in `.env` file:
+
+```env
+# Required
+REDDIT_CLIENT_ID=your_client_id
+REDDIT_CLIENT_SECRET=your_client_secret
+REDDIT_USER_AGENT=FeedbackAnalyzer/1.0
+OLLAMA_MODEL=llama3.2
+REVIEW_COLLECTION_NAME=reddit_reviews
+
+# Optional
+API_KEY=custom_api_key  # Auto-generated if not set
+OLLAMA_BASE_URL=http://localhost:11434
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### Reddit Search Queries
+
+Configure target subreddits and search terms in [`src/utilities/reddit_handler.py`](src/utilities/reddit_handler.py).
+
+### Analysis Parameters
+
+Customize in [`feedback_analyzer.py`](feedback_analyzer.py):
 
 ```python
 config = {
-    'embedding_model': 'text-embedding-3-small',
-    'llm_model': 'gpt-4',
+    'embedding_model': 'all-MiniLM-L6-v2',
     'cluster_min_size': 3,
     'similarity_threshold': 0.75,
+    'max_clusters': 20,
     'max_themes': 10
 }
 ```
+
+### API Security
+
+Configure in [`custom_apis.py`](custom_apis.py):
+
+```python
+# Rate limiting
+RateLimiter(max_requests=10, window_seconds=60)
+
+# Server configuration
+uvicorn.run(
+    app,
+    host="127.0.0.1",  # Localhost only
+    port=8000,
+    limit_concurrency=10,
+    limit_max_requests=1000,
+    timeout_keep_alive=5
+)
+```
+
+## Security Features
+
+1. **API Authentication**: Required API keys for all sensitive endpoints
+2. **Rate Limiting**: Per-IP request throttling to prevent abuse
+3. **Input Validation**: Sanitization of all user inputs
+4. **Path Traversal Protection**: Validates all file paths within workspace
+5. **Secure File Operations**: Restricted permissions on all output files
+6. **Audit Logging**: Comprehensive request/response logging
+7. **Error Handling**: No sensitive data in error messages
+8. **CORS Protection**: Localhost-only binding by default
+
+## Dependencies
+
+Key libraries (see [`requirements.txt`](requirements.txt)):
+
+- **LLM & NLP**: `langchain`, `langchain-ollama`, `sentence-transformers`
+- **Vector Database**: `chromadb`
+- **Data Collection**: `praw` (Reddit API)
+- **API Framework**: `fastapi`, `uvicorn`, `pydantic`
+- **ML & Analytics**: `scikit-learn`, `pandas`, `numpy`
+- **Sentiment Analysis**: `vaderSentiment`, `textblob`
+- **Summarization**: `sumy`
 
 ## Contributing
 
@@ -213,9 +391,20 @@ Contributions are welcome! Please follow these guidelines:
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow the existing code style and security practices
+4. Add tests for new features
+5. Update documentation as needed
+6. Commit your changes (`git commit -m 'Add amazing feature'`)
+7. Push to the branch (`git push origin feature/amazing-feature`)
+8. Open a Pull Request
+
+### Code Quality
+
+- Follow PEP 8 style guidelines
+- Use type hints for function signatures
+- Add docstrings for all functions and classes
+- Implement proper error handling
+- Include security considerations in all code
 
 ## License
 
@@ -223,25 +412,40 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Acknowledgments
 
-- ChromaDB for vector database functionality
-- OpenAI and Anthropic for LLM capabilities
+- **ChromaDB** for efficient vector database functionality
+- **LangChain** for agent orchestration framework
+- **Ollama** for local LLM inference
+- **PRAW** for Reddit API access
+- **Sentence Transformers** for semantic embeddings
 - Community contributors and feedback
 
 ## Support
 
 For issues, questions, or contributions:
 - Open an issue on GitHub
-- Contact: [your-email@example.com]
+- Check existing documentation
+- Review API documentation at `/docs` endpoint
 
 ## Roadmap
 
-- [ ] Support for additional data sources (Twitter, Reddit, etc.)
-- [ ] Real-time feedback streaming
-- [ ] Advanced visualization dashboard
+### Planned Features
+- [ ] Multi-source data collection (Twitter, reviews, surveys)
+- [ ] Real-time streaming analysis
+- [ ] Interactive dashboard for visualization
+- [ ] Advanced sentiment analysis with aspect-based detection
 - [ ] Multi-language support
-- [ ] Automated reporting and alerts
-- [ ] Integration with product management tools
+- [ ] Automated report generation
+- [ ] Webhook notifications for critical insights
+- [ ] Docker containerization
+- [ ] Kubernetes deployment support
+
+### Security Enhancements
+- [ ] OAuth2 authentication
+- [ ] Role-based access control (RBAC)
+- [ ] API key rotation
+- [ ] Encrypted data storage
+- [ ] Audit log retention policies
 
 ---
 
-**Note**: Remember to keep your API keys secure and never commit [`.env`](.env) files to version control.
+**Note**: This is an educational/research project. Ensure compliance with platform terms of service and data privacy regulations when collecting user feedback.
