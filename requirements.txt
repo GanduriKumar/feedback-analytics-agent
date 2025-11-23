@@ -39,4 +39,17 @@ sumy~=0.11.0  # Text summarization library
 textblob~=0.19.0  # Simple NLP library for processing textual data
 vaderSentiment~=3.3.2  # Sentiment analysis tool for social media text
 
+# Multi-Provider LLM Support (for generic_llm_interface.py)
+# Install only the providers you plan to use
 
+# OpenAI support
+langchain-openai~=1.0.3  # ChatOpenAI, OpenAIEmbeddings
+
+# Anthropic (Claude) support
+langchain-anthropic>=1.1.0  # ChatAnthropic
+
+# Google (Gemini) support
+langchain-google-genai>=3.1.0  # ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
+
+# HuggingFace support
+langchain-huggingface>=0.1.0  # HuggingFaceEndpoint, HuggingFaceEmbeddings
