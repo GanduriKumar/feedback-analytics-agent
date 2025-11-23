@@ -33,14 +33,15 @@ class ReviewSummarizer:
     - Combines multiple reviews within a cluster before summarization
     """
     def __init__(self):
-        pass
+        self.lm = dspy.LM('ollama_chat/mistral:latest', api_base='http://localhost:11434', api_key='')
+        self.summarizer = dspy.ChainOfThought('review -> summary')
+    
 
     def summarize_review(self, review: str) -> str:
-        dspy.configure(lm= dspy.LM('ollama_chat/mistral:latest',api_base='http://localhost:11434',api_key=''))
-        summarize = dspy.ChainOfThought('document -> summary')
-        response = summarize(document=review)
-        # print(response.summary)
-        return response.summary
+    # Use dspy.context() instead of dspy.configure() in async contexts
+        with dspy.context(lm=self.lm):
+            summary = self.summarizer(review=review)
+            return summary.summary
 
     def summarize_clusters(self, clusters:dict)->list:
         df_clusters = pd.DataFrame(clusters)

@@ -4,7 +4,7 @@ An intelligent A2A-compatible agent system for extracting actionable intelligenc
 
 ## Overview
 
-This project leverages AI and machine learning to automatically analyze large volumes of user feedback from Reddit and other sources, identify themes, cluster similar reviews, and extract meaningful insights to inform product and business decisions. The system now includes an A2A (Agent-to-Agent) compatible interface for seamless integration with other AI agents.
+This project leverages AI and machine learning to automatically analyze large volumes of user feedback from Reddit and other sources, identify themes, cluster similar reviews, and extract meaningful insights to inform product and business decisions. The system includes an A2A (Agent-to-Agent) compatible interface for seamless integration with other AI agents.
 
 ## Features
 
@@ -34,10 +34,11 @@ feedback-analytics-agent/
 ├── chroma_db/                      # ChromaDB vector database storage
 ├── config/
 │   └── search_queries.csv          # Reddit search queries
-├── a2a_review_analyzer_agent.py    # A2A-compatible agent API
+├── .github/
+│   └── copilot-instructions.md     # GitHub Copilot instructions
+├── a2acompatible_analyzer_agent.py # A2A-compatible agent API
 ├── custom_apis.py                  # Secure FastAPI endpoints
 ├── custom_pipeline.py              # Custom analysis pipelines
-├── feedback_analysis.py            # Simple analysis endpoint
 ├── feedback_analyzer.py            # LangGraph-based analyzer
 ├── query_vectorDB.py               # Vector database query interface
 ├── review_analyzer_agent.py        # LangChain agent for review analysis
@@ -52,6 +53,7 @@ feedback-analytics-agent/
     ├── curated_reviews.csv/json   # Curated/filtered reviews
     ├── themes.csv/json            # Extracted themes
     ├── feedback_analysis_results.csv/json # Final analysis results
+    ├── a2a_themes_results.json    # A2A-compatible themes output
     └── search_results.csv         # Vector DB query results
 ```
 
@@ -92,21 +94,27 @@ feedback-analytics-agent/
 
 5. Configure environment variables in `.env`:
     ```env
-    # Reddit API Configuration
+    # Ollama LLM Configuration
+    BASE_URL=http://localhost:11434
+    API_KEY=Ollama
+    
+    # Model Selection
+    INFERENCE_MODEL=mistral:latest
+    VISION_MODEL=llava
+    EMBEDDING_MODEL=nomic-embed-text
+    
+    # Model Behavior Parameters
+    MODEL_TEMPERATURE=0.0
+    MODEL_SEED=42
+    MODEL_TOP_K=10
+    MODEL_MAX_TOKENS=100
+    
+    # Reddit API Credentials
     REDDIT_CLIENT_ID=your_client_id
     REDDIT_CLIENT_SECRET=your_client_secret
     REDDIT_USER_AGENT=FeedbackAnalyzer/1.0
     TIME_FILTER=month
     NUM_POSTS=100
-    
-    # LLM Configuration
-    BASE_URL=http://localhost:11434
-    INFERENCE_MODEL=mistral:latest
-    VISION_MODEL=llava:latest
-    EMBEDDING_MODEL=all-MiniLM-L6-v2
-    MODEL_TEMPERATURE=0.7
-    MODEL_MAX_TOKENS=2000
-    MODEL_TOP_K=50
     
     # Vector Database
     CHROMA_DB_PATH=./chroma_db
@@ -116,10 +124,6 @@ feedback-analytics-agent/
     
     # API Security
     API_KEY=your_secure_api_key  # Auto-generated if not set
-    
-    # Optional: External LLM APIs
-    OPENAI_API_KEY=your_openai_key
-    ANTHROPIC_API_KEY=your_anthropic_key
     ```
 
 6. Configure Reddit search queries in [`config/search_queries.csv`](config/search_queries.csv):
@@ -137,7 +141,7 @@ feedback-analytics-agent/
 Start the A2A-compatible agent server:
 
 ```bash
-python a2a_review_analyzer_agent.py
+python a2acompatible_analyzer_agent.py
 ```
 
 The agent will be available at `http://127.0.0.1:8001` with standardized A2A endpoints.
@@ -186,15 +190,16 @@ API Documentation: `http://127.0.0.1:8001/docs`
 
 ### 2. Secure REST API
 
-Start the FastAPI server with built-in security:
+Start the secure API server:
 
 ```bash
 python custom_apis.py
 ```
 
-The API will be available at `http://127.0.0.1:8000` with the following endpoints:
+The API will be available at `http://127.0.0.1:8000`.
 
 #### Authentication
+
 All endpoints (except `/health`) require API key authentication via:
 - Header: `X-API-Key: your_api_key`
 - Query parameter: `?x_api_key=your_api_key`
@@ -243,17 +248,7 @@ themes = execute_graph_pipeline(user_query)
 print(f"Extracted {len(themes)} themes")
 ```
 
-### 4. Simple Analysis Endpoint
-
-Run a single-endpoint analysis:
-
-```bash
-python feedback_analysis.py
-```
-
-Then access: `http://127.0.0.1:8000/analyze_feedback`
-
-### 5. LangChain Agent
+### 4. LangChain Agent
 
 Use the review analyzer agent for interactive analysis:
 
@@ -273,7 +268,7 @@ Analysis complete. Results saved to: review_analysis_output.json
 Total themes extracted: 15
 ```
 
-### 6. Vector Database Query
+### 5. Vector Database Query
 
 Search for similar feedback using semantic search:
 
@@ -290,7 +285,7 @@ results = query_vector_db(
 print(f"Found {len(results)} similar reviews")
 ```
 
-### 7. Custom Pipeline
+### 6. Custom Pipeline
 
 Build and populate the vector database:
 
@@ -308,18 +303,17 @@ This will:
 
 ### 1. Data Collection & Preprocessing
 
-- **[`src/utilities/reddit_handler.py`](src/utilities/reddit_handler.py)**: Reddit API integration using PRAW
-  - Concurrent post fetching with thread pools
-  - Automatic deduplication
-  - CSV/JSON export with proper quoting
-  - Configurable search queries and filters
+- **[`src/utilities/reddit_handler.py`](src/utilities/reddit_handler.py)**: Reddit API integration
+  - PRAW-based data collection
+  - Multi-subreddit support
+  - Configurable time filters and post limits
+  - Automatic rate limiting handling
   
-- **[`src/tools/custom_tools.py`](src/tools/custom_tools.py)**: Core analysis utilities
-  - `fetch_reddit_reviews()`: Collect posts from configured subreddits
-  - `clean_reviews()`: Text preprocessing and normalization
-  - `assess_clusters()`: ML-based review clustering
-  - `summarize_clusters()`: LLM-based cluster summarization
-  - `extract_themes()`: Theme extraction and classification
+- **[`custom_pipeline.py`](custom_pipeline.py)**: Data preprocessing
+  - Text cleaning and normalization
+  - Special character removal
+  - Duplicate detection
+  - Batch processing for efficiency
 
 ### 2. Vector Database (ChromaDB)
 
@@ -336,19 +330,19 @@ This will:
   - Chunked upsertion for large datasets
   - Progress tracking and error handling
 
-### 3. Clustering & Theme Extraction
+### 3. ML-Based Analysis
 
-- **Clustering**: Uses sentence transformers for semantic grouping
-  - [`src/utilities/review_clustering.py`](src/utilities/review_clustering.py)
-  - DBSCAN algorithm for automatic cluster detection
-  - Semantic similarity-based grouping
+- **[`src/utilities/review_clustering.py`](src/utilities/review_clustering.py)**: Semantic clustering
+  - Sentence transformer embeddings
+  - DBSCAN/KMeans clustering algorithms
+  - Automatic cluster count determination
+  - Similarity threshold optimization
   
-- **Theme Classification**: [`src/utilities/theme_issue_classifier.py`](src/utilities/theme_issue_classifier.py)
-  - LLM-based theme extraction using Ollama
-  - Structured output using Pydantic models
-  - Sentiment analysis integration
-  - Product-specific categorization
-  - Async processing support
+- **[`src/utilities/review_summarizer.py`](src/utilities/review_summarizer.py)**: Content summarization
+  - DSPy-based summarization
+  - Extractive and abstractive methods
+  - Batch processing support
+  - Quality validation
 
 ### 4. AI-Powered Analysis
 
@@ -369,40 +363,11 @@ This will:
   - Interactive command-line interface
   - Comprehensive error handling
 
-### 5. A2A-Compatible Agent Layer
-
-- **[`a2a_review_analyzer_agent.py`](a2a_review_analyzer_agent.py)**: Agent-to-Agent API
-  - **Standardized Interface**: RESTful API with structured request/response models
-  - **Agent Discovery**: `/health` and `/capabilities` endpoints
-  - **Security Features**:
-    - API key authentication (header + query param)
-    - Input validation with Pydantic V2
-    - Path traversal prevention
-    - Secure file permissions (0o600)
-    - Comprehensive error handling
-  - **Async Processing**: Thread pool execution for blocking operations
-  - **Multiple Access Methods**: GET and POST endpoints for flexibility
-  - **Structured Responses**: Type-safe models with metadata
-
-### 6. Secure API Layer
-
-- **[`custom_apis.py`](custom_apis.py)**: Production-ready FastAPI server
-  - **Security Features**:
-    - API key authentication (header + query param)
-    - Rate limiting (10 requests/60s per IP)
-    - Request logging and audit trail
-    - Path traversal prevention
-    - Secure file permissions (0o600)
-    - Input sanitization
-    - CORS protection
-    - Trusted host middleware
-  - **Async Processing**: Thread pool execution for blocking operations
-  - **Error Handling**: Comprehensive exception handling with proper HTTP status codes
-  - **Middleware Stack**:
-    - Request logging
-    - Rate limiting
-    - CORS configuration
-    - Trusted hosts validation
+- **[`src/utilities/theme_issue_classifier.py`](src/utilities/theme_issue_classifier.py)**: Theme extraction
+  - LLM-based classification
+  - Structured output validation
+  - Sentiment analysis integration
+  - Category assignment
 
 ## Data Flow
 
@@ -444,8 +409,8 @@ All output files are generated in both CSV and JSON formats:
 - **`themes.csv/json`**: Extracted themes with categories, sentiment, and frequencies
 - **`feedback_analysis_results.csv/json`**: Complete analysis with insights and recommendations
 - **`search_results.csv`**: Vector database query results with similarity scores
-- **`a2a_analysis_results.json`**: A2A-compatible analysis output
 - **`a2a_themes_results.json`**: A2A-compatible themes output
+- **`review_analysis_output.json`**: LangChain agent analysis results
 
 **Security**: All files are written with restricted permissions (owner read/write only, chmod 0o600)
 
@@ -468,9 +433,11 @@ REVIEW_COLLECTION_NAME=reviews
 API_KEY=custom_api_key  # Auto-generated if not set
 TIME_FILTER=month
 NUM_POSTS=100
-EMBEDDING_MODEL=all-MiniLM-L6-v2
-MODEL_TEMPERATURE=0.7
-MODEL_MAX_TOKENS=2000
+EMBEDDING_MODEL=nomic-embed-text
+MODEL_TEMPERATURE=0.0
+MODEL_MAX_TOKENS=100
+MODEL_TOP_K=10
+MODEL_SEED=42
 CHROMA_DB_PATH=./chroma_db
 EMBEDDING_BATCH_SIZE=100
 UPSERT_BATCH_SIZE=500
@@ -509,7 +476,7 @@ config = {
 
 ### API Security
 
-Configure in [`custom_apis.py`](custom_apis.py) and [`a2a_review_analyzer_agent.py`](a2a_review_analyzer_agent.py):
+Configure in [`custom_apis.py`](custom_apis.py) and [`a2acompatible_analyzer_agent.py`](a2acompatible_analyzer_agent.py):
 
 ```python
 # Rate limiting

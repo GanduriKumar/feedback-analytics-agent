@@ -19,7 +19,7 @@ from fastapi.security import APIKeyHeader, APIKeyQuery
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
 from typing import List, Dict, Any, Optional
-from datetime import datetime
+from datetime import datetime, UTC
 from pathlib import Path
 import logging
 import json
@@ -240,7 +240,7 @@ async def health_check():
     return HealthResponse(
         status="healthy",
         version="1.0.0",
-        timestamp=datetime.utcnow().isoformat(),
+        timestamp=datetime.now(UTC).isoformat(),
         capabilities=get_capabilities()
     )
 
@@ -282,13 +282,13 @@ async def get_themes(
         sanitized_query = validate_and_sanitize_query(query)
         
         logger.info(f"Processing themes request: {sanitized_query[:100]}")
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         
         # Execute pipeline
         themes = execute_graph_pipeline(sanitized_query)
         
         # Calculate processing time
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
         processing_time = (end_time - start_time).total_seconds()
         
         # Convert to response model
@@ -358,13 +358,13 @@ async def analyze_feedback(request: AnalysisRequest):
     """
     try:
         logger.info(f"Processing analysis request: {request.query[:100]}")
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         
         # Execute pipeline
         themes = execute_graph_pipeline(request.query)
         
         # Calculate processing time
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
         processing_time = (end_time - start_time).total_seconds()
         
         # Convert to response model
@@ -443,7 +443,7 @@ async def search_reviews(request: SearchRequest):
             query=request.query,
             results=results,
             count=len(results),
-            timestamp=datetime.utcnow().isoformat()
+            timestamp=datetime.now(UTC).isoformat()
         )
         
         logger.info(f"Search completed, found {len(results)} results")
