@@ -1,16 +1,63 @@
 @import "tailwindcss";
-@config "../tailwind.config.js";
 
-@layer base {
-  html {
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, 'Noto Sans', 'Liberation Sans', sans-serif;
-  }
+@theme {
+  /* Google Material Design Colors */
+  --color-google-blue-50: #E8F0FE;
+  --color-google-blue-100: #D2E3FC;
+  --color-google-blue-200: #AECBFA;
+  --color-google-blue-300: #8AB4F8;
+  --color-google-blue-400: #669DF6;
+  --color-google-blue-500: #1A73E8;
+  --color-google-blue-600: #1967D2;
+  --color-google-blue-700: #185ABC;
+  --color-google-blue-800: #174EA6;
+  --color-google-blue-900: #0D47A1;
 
-  body {
-    @apply bg-google-gray-50 text-google-gray-900;
-  }
+  --color-google-red-50: #FCE8E6;
+  --color-google-red-100: #FAD2CF;
+  --color-google-red-200: #F6AEA9;
+  --color-google-red-300: #F28B82;
+  --color-google-red-400: #EE675C;
+  --color-google-red-500: #D93025;
+  --color-google-red-600: #C5221F;
+  --color-google-red-700: #B31412;
+  --color-google-red-800: #A50E0E;
+  --color-google-red-900: #7C0B0B;
 
-  a {
-    @apply text-google-blue-600 hover:text-google-blue-700;
-  }
+  --color-google-yellow-50: #FEF7E0;
+  --color-google-yellow-100: #FEEFC3;
+  --color-google-yellow-200: #FDE293;
+  --color-google-yellow-300: #FDD663;
+  --color-google-yellow-400: #FCC934;
+  --color-google-yellow-500: #F9AB00;
+  --color-google-yellow-600: #F29900;
+  --color-google-yellow-700: #EA8600;
+  --color-google-yellow-800: #E37400;
+  --color-google-yellow-900: #DC5D00;
+
+  --color-google-green-50: #E6F4EA;
+  --color-google-green-100: #CEEAD6;
+  --color-google-green-200: #A8DAB5;
+  --color-google-green-300: #81C995;
+  --color-google-green-400: #5BB974;
+  --color-google-green-500: #1E8E3E;
+  --color-google-green-600: #1A7F37;
+  --color-google-green-700: #137333;
+  --color-google-green-800: #0D652D;
+  --color-google-green-900: #0B4F24;
+
+  --color-google-gray-50: #F8F9FA;
+  --color-google-gray-100: #F1F3F4;
+  --color-google-gray-200: #E8EAED;
+  --color-google-gray-300: #DADCE0;
+  --color-google-gray-400: #BDC1C6;
+  --color-google-gray-500: #9AA0A6;
+  --color-google-gray-600: #80868B;
+  --color-google-gray-700: #5F6368;
+  --color-google-gray-800: #3C4043;
+  --color-google-gray-900: #202124;
+}
+
+body {
+  font-family: 'Google Sans', 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }

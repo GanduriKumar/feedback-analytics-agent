@@ -11,7 +11,7 @@ import type {
 } from '../types';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
-const apiKey = import.meta.env.VITE_API_KEY;
+const apiKey = import.meta.env.VITE_API_KEY || 'dev-api-key-12345';
 
 export const api = axios.create({
   baseURL,

@@ -1,27 +1,40 @@
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import type { AnalysisReport } from '../../types';
-import { labelColorClass } from '../../utils/labelColor';
 
-export function IssueCategoriesChart({ report }: { report: AnalysisReport }) {
+interface Props {
+  report: AnalysisReport;
+}
+
+const COLORS = ['#1A73E8', '#1E8E3E', '#F9AB00', '#D93025', '#9AA0A6'];
+
+export function IssueCategoriesChart({ report }: Props) {
   const data = Object.entries(report.issue_categories)
-    .map(([category, count]) => ({ category, count }))
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 12);
+    .map(([category, count]) => ({
+      category,
+      count,
+      percentage: ((count / report.total_reviews) * 100).toFixed(1)
+    }))
+    .sort((a, b) => b.count - a.count);
 
   return (
-    <div className="rounded-xl border border-google-gray-200 bg-white p-5 shadow-sm">
-      <div className={['font-semibold', labelColorClass('Top Issue Categories')].join(' ')}>Top Issue Categories</div>
-      <div className="mt-4 h-[280px]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data} layout="vertical" margin={{ left: 90 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E8EAED" />
-            <XAxis type="number" stroke="#5F6368" />
-            <YAxis type="category" dataKey="category" stroke="#5F6368" width={90} />
-            <Tooltip />
-            <Bar dataKey="count" fill="#1A73E8" radius={[0, 8, 8, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+    <div className="bg-white rounded-lg border border-google-gray-200 p-6">
+      <h3 className="text-lg font-semibold text-google-gray-900 mb-4">Issue Categories by Frequency</h3>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={data} layout="vertical" margin={{ left: 100 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#E8EAED" />
+          <XAxis type="number" stroke="#5F6368" />
+          <YAxis type="category" dataKey="category" stroke="#5F6368" width={100} />
+          <Tooltip 
+            formatter={(value: number) => [`${value} reviews`, 'Count']}
+            labelFormatter={(label) => `Category: ${label}`}
+          />
+          <Bar dataKey="count" radius={[0, 8, 8, 0]}>
+            {data.map((entry, index) => (
+              <Cell key={entry.category} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

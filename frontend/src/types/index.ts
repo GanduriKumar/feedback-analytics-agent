@@ -11,7 +11,8 @@ export type PipelineStage =
   | 'idle'
   | 'fetching'
   | 'cleaning'
-  | 'clustering'
+  | 'embedding'
+  | 'storing'
   | 'analyzing'
   | 'complete'
   | 'error';

@@ -1,59 +1,52 @@
-import { FileText, Layers, Tag, TrendingUp } from 'lucide-react';
+import { FileText, Database, Tag, TrendingUp } from 'lucide-react';
 import type { AnalysisReport } from '../../types';
-import { labelColorClass } from '../../utils/labelColor';
 
-export function OverviewCards({ report }: { report: AnalysisReport }) {
+interface Props {
+  report: AnalysisReport;
+}
+
+export function OverviewCards({ report }: Props) {
   const cards = [
     {
-      label: 'Reviews',
+      label: 'Total Reviews',
       value: report.total_reviews,
       icon: FileText,
-      bg: 'bg-google-blue-50',
-      border: 'border-google-blue-200',
-      iconColor: 'text-google-blue-700',
+      color: 'google-blue',
     },
     {
-      label: 'Themes',
-      value: report.total_themes,
-      icon: Layers,
-      bg: 'bg-google-green-50',
-      border: 'border-google-green-200',
-      iconColor: 'text-google-green-700',
+      label: 'Data Sources',
+      value: report.data_sources.length,
+      icon: Database,
+      color: 'google-green',
     },
     {
       label: 'Issue Categories',
-      value: report.text_analytics.unique_issue_categories,
+      value: Object.keys(report.issue_categories).length,
       icon: Tag,
-      bg: 'bg-google-yellow-50',
-      border: 'border-google-yellow-200',
-      iconColor: 'text-google-yellow-700',
+      color: 'google-yellow',
     },
     {
-      label: 'Products',
-      value: report.text_analytics.unique_products,
+      label: 'Themes Identified',
+      value: report.total_themes,
       icon: TrendingUp,
-      bg: 'bg-google-red-50',
-      border: 'border-google-red-200',
-      iconColor: 'text-google-red-700',
+      color: 'google-red',
     },
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-      {cards.map((c) => {
-        const Icon = c.icon;
-        return (
-          <div key={c.label} className={[c.bg, c.border, 'border rounded-xl p-5 shadow-sm'].join(' ')}>
-            <div className="flex items-center justify-between">
-              <div>
-                <div className={['text-sm font-semibold', labelColorClass(c.label)].join(' ')}>{c.label}</div>
-                <div className="text-3xl font-semibold text-google-gray-900 mt-1">{c.value}</div>
-              </div>
-              <Icon className={['w-8 h-8', c.iconColor].join(' ')} />
-            </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {cards.map(({ label, value, icon: Icon, color }) => (
+        <div
+          key={label}
+          className={`bg-${color}-50 border border-${color}-200 rounded-lg p-6`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <Icon className={`w-8 h-8 text-${color}-600`} />
+            <span className={`text-3xl font-bold text-${color}-700`}>{value}</span>
           </div>
-        );
-      })}
+          <p className="text-sm font-medium text-google-gray-700">{label}</p>
+        </div>
+      ))}
     </div>
   );
 }

@@ -1,28 +1,28 @@
 import { Link } from 'react-router-dom';
-import { Download, FileText, Table2 } from 'lucide-react';
+import { FileText, Table } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
 import { OverviewCards } from '../components/charts/OverviewCards';
 import { SentimentChart } from '../components/charts/SentimentChart';
 import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart';
-import { ThemesTable } from '../components/reports/ThemesTable';
-import { ClustersPanel } from '../components/reports/ClustersPanel';
-import { downloadCSVReport, downloadPDFReport } from '../utils/export';
+import { ClusterTable } from '../components/reports/ClusterTable';
+import { generatePDFReport, generateCSVReport } from '../utils/export';
 
 export function Reports() {
   const { lastRun } = useAppStore();
+  const report = lastRun;
 
-  if (!lastRun) {
+  if (!report) {
     return (
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="rounded-2xl border border-google-gray-200 bg-white p-10 text-center shadow-sm">
-          <FileText className="w-14 h-14 text-google-gray-400 mx-auto" />
-          <h2 className="text-2xl font-semibold text-google-gray-900 mt-4">No report available</h2>
-          <p className="text-google-gray-600 mt-2">Run Extract & Analyze first to generate a report.</p>
+      <div className="min-h-[calc(100vh-4rem)] bg-google-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <FileText className="w-16 h-16 text-google-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-semibold text-google-gray-900 mb-2">No Report Available</h2>
+          <p className="text-google-gray-600 mb-6">Run an analysis first to generate a report</p>
           <Link
             to="/analyze"
-            className="inline-flex items-center gap-2 mt-6 px-5 py-2.5 rounded-lg bg-google-blue-600 text-white hover:bg-google-blue-700"
+            className="px-6 py-3 bg-google-blue-500 text-white rounded-lg hover:bg-google-blue-600 inline-block"
           >
-            Start Extract & Analyze
+            Start Analysis
           </Link>
         </div>
       </div>
@@ -30,54 +30,61 @@ export function Reports() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-semibold text-google-gray-900">Reports</h1>
-          <p className="text-google-gray-600 mt-1">Generated: {new Date(lastRun.generated_at).toLocaleString()}</p>
+    <div className="min-h-screen bg-google-gray-50">
+      <div className="max-w-7xl mx-auto px-8 py-8 space-y-6">
+        {/* Header with Download Options */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-google-gray-900">Analysis Report</h1>
+            <p className="text-google-gray-600 mt-1">
+              Generated on {new Date(report.generated_at).toLocaleString()}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => generatePDFReport(report)}
+              className="flex items-center gap-2 px-6 py-3 bg-google-red-500 text-white rounded-lg hover:bg-google-red-600"
+            >
+              <FileText className="w-5 h-5" />
+              Download PDF
+            </button>
+            <button
+              onClick={() => generateCSVReport(report)}
+              className="flex items-center gap-2 px-6 py-3 bg-google-green-500 text-white rounded-lg hover:bg-google-green-600"
+            >
+              <Table className="w-5 h-5" />
+              Download CSV
+            </button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => downloadPDFReport(lastRun)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-google-red-600 text-white hover:bg-google-red-700"
-          >
-            <FileText className="w-4 h-4" /> PDF
-          </button>
-          <button
-            type="button"
-            onClick={() => downloadCSVReport(lastRun)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-google-green-600 text-white hover:bg-google-green-700"
-          >
-            <Table2 className="w-4 h-4" /> CSV
-          </button>
-          <Link to="/analyze" className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-google-gray-300 hover:bg-google-gray-50">
-            <Download className="w-4 h-4" /> Run new
-          </Link>
+
+        {/* Report Content */}
+        <OverviewCards report={report} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <SentimentChart report={report} />
+          <IssueCategoriesChart report={report} />
         </div>
+
+        <ClusterTable report={report} />
+
+        {/* Recommendations Section */}
+        {report.recommendations && report.recommendations.length > 0 && (
+          <div className="bg-white rounded-lg border border-google-gray-200 p-6">
+            <h3 className="text-lg font-semibold text-google-gray-900 mb-4">Recommendations</h3>
+            <ul className="space-y-3">
+              {report.recommendations.map((rec, idx) => (
+                <li key={idx} className="flex gap-3">
+                  <span className="flex-shrink-0 w-6 h-6 rounded-full bg-google-blue-100 text-google-blue-700 flex items-center justify-center text-sm font-semibold">
+                    {idx + 1}
+                  </span>
+                  <p className="text-google-gray-700">{rec}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
       </div>
-
-      <OverviewCards report={lastRun} />
-
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-        <SentimentChart report={lastRun} />
-        <IssueCategoriesChart report={lastRun} />
-      </div>
-
-      <div className="rounded-xl border border-google-gray-200 bg-white p-5 shadow-sm">
-        <div className="font-semibold text-google-gray-900">Recommendations</div>
-        <ul className="mt-3 space-y-2">
-          {lastRun.recommendations.map((r, idx) => (
-            <li key={idx} className="text-sm text-google-gray-700">
-              <span className="mr-2 text-google-blue-600 font-semibold">{idx + 1}.</span>
-              {r}
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {lastRun.clusters && <ClustersPanel clusters={lastRun.clusters} />}
-      <ThemesTable themes={lastRun.themes} />
     </div>
   );
 }

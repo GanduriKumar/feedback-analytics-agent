@@ -1,16 +1,23 @@
-import { CheckCircle2, Circle, Loader2, XCircle } from 'lucide-react';
+import { CheckCircle, Circle, Loader, XCircle } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
-const stages: Array<{ key: string; label: string; desc: string }> = [
-  { key: 'fetching', label: 'Extract', desc: 'Collect reviews from selected sources' },
-  { key: 'cleaning', label: 'Clean', desc: 'Normalize, dedupe, prep text' },
-  { key: 'clustering', label: 'Cluster', desc: 'Group similar feedback' },
-  { key: 'analyzing', label: 'Analyze', desc: 'Themes, sentiment, categories' },
+const stages: Array<{ key: string; label: string; description: string }> = [
+  { key: 'fetching', label: 'Fetching Reviews', description: 'Extracting from data sources' },
+  { key: 'cleaning', label: 'Cleaning Data', description: 'Removing duplicates & noise' },
+  { key: 'embedding', label: 'Generating Embeddings', description: 'Creating vector representations' },
+  { key: 'storing', label: 'Storing in VectorDB', description: 'Persisting to ChromaDB' },
+  { key: 'analyzing', label: 'Analyzing Themes', description: 'Clustering & theme extraction' },
 ];
 
-function rank(stage: string) {
-  const idx = stages.findIndex((s) => s.key === stage);
-  return idx < 0 ? -1 : idx;
+function getStageStatus(stageKey: string, currentStage: string) {
+  const currentIndex = stages.findIndex((s) => s.key === currentStage);
+  const stageIndex = stages.findIndex((s) => s.key === stageKey);
+
+  if (currentStage === 'error') return 'error';
+  if (currentStage === 'complete') return 'complete';
+  if (stageIndex < currentIndex) return 'complete';
+  if (stageIndex === currentIndex) return 'active';
+  return 'pending';
 }
 
 export function ProgressTracker() {
@@ -18,43 +25,40 @@ export function ProgressTracker() {
 
   if (!isRunning && progress.stage === 'idle') return null;
 
+  const currentStage = progress.stage;
+
   return (
-    <section className="rounded-xl border border-google-gray-200 bg-white p-5 space-y-4">
+    <section className="bg-white rounded-lg border border-google-gray-200 p-6 space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-base font-semibold text-google-gray-900">Workflow Progress</h3>
-          <p className="text-sm text-google-gray-600">{progress.message || '—'}</p>
-        </div>
-        <div className="text-sm font-medium text-google-gray-700">{progress.progress}%</div>
+        <h2 className="text-xl font-semibold text-google-gray-900">Pipeline Progress</h2>
+        <span className="text-sm text-google-gray-600">{progress.progress}%</span>
       </div>
 
-      <div className="w-full h-2 rounded-full bg-google-gray-200 overflow-hidden">
-        <div className="h-2 bg-google-blue-600 transition-all" style={{ width: `${Math.min(100, Math.max(0, progress.progress))}%` }} />
+      <div className="w-full bg-google-gray-200 rounded-full h-2">
+        <div
+          className="bg-google-blue-500 h-2 rounded-full transition-all duration-300"
+          style={{ width: `${Math.min(100, Math.max(0, progress.progress))}%` }}
+        />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-        {stages.map((s) => {
-          const current = rank(progress.stage);
-          const me = rank(s.key);
-
-          let icon = <Circle className="w-5 h-5 text-google-gray-300" />;
-          if (progress.stage === 'error') icon = <XCircle className="w-5 h-5 text-google-red-600" />;
-          else if (progress.stage === 'complete' || me < current) icon = <CheckCircle2 className="w-5 h-5 text-google-green-600" />;
-          else if (me === current) icon = <Loader2 className="w-5 h-5 text-google-blue-600 animate-spin" />;
-
+      <div className="space-y-4">
+        {stages.map((stage) => {
+          const status = getStageStatus(stage.key, currentStage);
           return (
-            <div key={s.key} className="flex items-start gap-3 rounded-lg border border-google-gray-200 p-4">
-              <div className="mt-0.5">{icon}</div>
-              <div>
-                <div className="font-medium text-google-gray-900">{s.label}</div>
-                <div className="text-xs text-google-gray-600">{s.desc}</div>
-                {progress.details && me === current && (
-                  <div className="mt-2 text-xs text-google-gray-700">
-                    {progress.details.reviewsFetched != null && <div>Fetched: {progress.details.reviewsFetched}</div>}
-                    {progress.details.reviewsCleaned != null && <div>Cleaned: {progress.details.reviewsCleaned}</div>}
-                    {progress.details.clustersCreated != null && <div>Clusters: {progress.details.clustersCreated}</div>}
-                    {progress.details.themesExtracted != null && <div>Themes: {progress.details.themesExtracted}</div>}
-                  </div>
+            <div key={stage.key} className="flex items-start gap-3">
+              <div className="mt-1">
+                {status === 'complete' && <CheckCircle className="w-6 h-6 text-google-green-500" />}
+                {status === 'active' && <Loader className="w-6 h-6 text-google-blue-500 animate-spin" />}
+                {status === 'pending' && <Circle className="w-6 h-6 text-google-gray-300" />}
+                {status === 'error' && <XCircle className="w-6 h-6 text-google-red-500" />}
+              </div>
+              <div className="flex-1">
+                <h3 className={`font-medium ${status === 'active' ? 'text-google-blue-600' : 'text-google-gray-900'}`}>
+                  {stage.label}
+                </h3>
+                <p className="text-sm text-google-gray-600">{stage.description}</p>
+                {status === 'active' && progress.message && (
+                  <p className="text-sm text-google-blue-600 mt-1">{progress.message}</p>
                 )}
               </div>
             </div>

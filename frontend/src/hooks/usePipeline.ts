@@ -1,6 +1,7 @@
-import { useCallback } from 'react';
-import { analyzeFeedback, clusterReviews, collectReviews, getApiErrorMessage } from '../services/api';
+import { useState, useCallback } from 'react';
 import { useAppStore } from '../store/useAppStore';
+import { collectReviews, clusterReviews, analyzeFeedback } from '../services/api';
+import type { AnalysisReport } from '../types';
 import { deriveReport } from '../utils/report';
 
 function normalizeCollectedReviews(reviews: Array<{ post_title: string; self_text: string } | string>): string[] {
@@ -23,117 +24,106 @@ function cleanText(s: string): string {
 }
 
 export function usePipeline() {
-  const {
-    userType,
-    searchQueries,
-    selectedSources,
-    llmConfig,
-    setProgress,
-    setLastRun,
-    addToHistory,
+  const { 
+    setProgress, 
+    setLastRun, 
+    addToHistory, 
+    searchQueries, 
+    selectedSources, 
+    userType, 
+    llmConfig 
   } = useAppStore();
+  const [error, setError] = useState<string | null>(null);
 
   const runPipeline = useCallback(async () => {
-    if (!userType) {
-      setProgress({ stage: 'error', message: 'Please select a user type.', progress: 0 });
-      return;
-    }
-    if (!searchQueries.length) {
-      setProgress({ stage: 'error', message: 'Please add at least one search query.', progress: 0 });
-      return;
-    }
-    if (!selectedSources.length) {
-      setProgress({ stage: 'error', message: 'Please select at least one source.', progress: 0 });
-      return;
-    }
-
     try {
-      // 1) Collect
-      setProgress({ stage: 'fetching', message: 'Collecting reviews from selected sources…', progress: 10 });
-      const collected = await collectReviews({
+      setError(null);
+
+      // Stage 1: Fetching
+      setProgress({ stage: 'fetching', message: 'Extracting reviews from sources...', progress: 10 });
+      const collectResponse = await collectReviews({
         queries: searchQueries,
         sources: selectedSources,
       });
 
-      const rawTexts = normalizeCollectedReviews(collected.reviews);
+      const rawTexts = normalizeCollectedReviews(collectResponse.reviews);
+      const reviewCount = rawTexts.length;
+
+      // Stage 2: Cleaning
       setProgress({
         stage: 'cleaning',
-        message: `Cleaning ${rawTexts.length} reviews…`,
+        message: `Cleaning ${reviewCount} reviews...`,
         progress: 30,
-        details: { reviewsFetched: rawTexts.length },
+        details: { reviewsFetched: reviewCount }
       });
-
-      // 2) Clean + dedupe (client-side for now)
+      
       const cleaned = rawTexts.map(cleanText).filter(Boolean);
       const unique = Array.from(new Set(cleaned));
+      await new Promise(resolve => setTimeout(resolve, 1000));
 
+      // Stage 3: Embedding
       setProgress({
-        stage: 'clustering',
-        message: `Clustering ${unique.length} cleaned reviews…`,
-        progress: 55,
-        details: { reviewsFetched: rawTexts.length, reviewsCleaned: unique.length },
+        stage: 'embedding',
+        message: 'Generating embeddings...',
+        progress: 50,
+        details: { reviewsCleaned: unique.length }
       });
+      await new Promise(resolve => setTimeout(resolve, 1500));
 
-      // 3) Cluster
-      const clusters = await clusterReviews(unique);
+      // Stage 4: Storing
+      setProgress({
+        stage: 'storing',
+        message: 'Storing in ChromaDB...',
+        progress: 70,
+        details: { reviewsCleaned: unique.length }
+      });
+      
+      const clusterResponse = await clusterReviews(unique);
 
-      // 4) Analyze (vector-db based)
+      // Stage 5: Analyzing
       setProgress({
         stage: 'analyzing',
-        message: 'Running theme extraction and sentiment analysis…',
-        progress: 80,
-        details: { reviewsFetched: rawTexts.length, reviewsCleaned: unique.length, clustersCreated: clusters.count },
+        message: 'Clustering and extracting themes...',
+        progress: 85,
+        details: { clustersCreated: clusterResponse.count }
       });
 
       const query = searchQueries.join(' | ');
-      const analysis = await analyzeFeedback({
+      const analysisResponse = await analyzeFeedback({
         query,
         n_results: 50,
         user_type: userType,
         llm_config: llmConfig,
       });
 
-      // 5) Derive report
+      // Complete
+      setProgress({ stage: 'complete', message: 'Analysis complete!', progress: 100 });
+
+      // Create report with all metadata
       const report = deriveReport({
-        userType,
+        userType: userType!,
         searchQueries,
         sources: selectedSources,
         llmConfig,
         totalReviews: unique.length,
-        themes: analysis.themes,
-        clusters,
+        themes: analysisResponse.themes,
+        clusters: clusterResponse,
       });
 
-      // patch avg length
-      const avgLen = unique.length ? Math.round(unique.reduce((sum, t) => sum + t.length, 0) / unique.length) : 0;
+      // Calculate average review length
+      const avgLen = unique.length 
+        ? Math.round(unique.reduce((sum, t) => sum + t.length, 0) / unique.length) 
+        : 0;
       report.text_analytics.avg_review_length = avgLen;
 
       setLastRun(report);
       addToHistory(report);
 
-      setProgress({
-        stage: 'complete',
-        message: 'Complete — report is ready.',
-        progress: 100,
-        details: {
-          reviewsFetched: rawTexts.length,
-          reviewsCleaned: unique.length,
-          clustersCreated: clusters.count,
-          themesExtracted: analysis.total_themes,
-        },
-      });
-    } catch (e: unknown) {
-      setProgress({ stage: 'error', message: getApiErrorMessage(e), progress: 0 });
+    } catch (err: any) {
+      setError(err.message || 'Pipeline execution failed');
+      setProgress({ stage: 'error', message: err.message || 'Pipeline execution failed', progress: 0 });
     }
-  }, [
-    userType,
-    searchQueries,
-    selectedSources,
-    llmConfig,
-    setProgress,
-    setLastRun,
-    addToHistory,
-  ]);
+  }, [searchQueries, selectedSources, userType, llmConfig, setProgress, setLastRun, addToHistory]);
 
-  return { runPipeline };
+  return { runPipeline, error };
 }
