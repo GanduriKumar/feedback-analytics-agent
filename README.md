@@ -1,154 +1,198 @@
 # Feedback Analytics Agent
 
-An intelligent A2A-compatible agent system for extracting actionable intelligence from end-user reviews, surveys, and feedback using advanced NLP techniques, vector databases, and AI-powered analysis.
+An intelligent feedback analysis system with React frontend and FastAPI backend for extracting actionable insights from user reviews and feedback using advanced NLP, vector databases, and AI-powered analysis.
 
-## Overview
-
-This project leverages AI and machine learning to automatically analyze large volumes of user feedback from Reddit and other sources, identify themes, cluster similar reviews, and extract meaningful insights to inform product and business decisions. The system includes an A2A (Agent-to-Agent) compatible interface for seamless integration with other AI agents.
-
-## Features
-
-- **A2A Compatible Interface**: Standardized REST API for agent-to-agent communication and discovery
-- **Automated Data Collection**: Scrape and aggregate feedback from Reddit using PRAW
-- **Vector Database Storage**: Store feedback embeddings in ChromaDB for efficient similarity search
-- **Intelligent Clustering**: Group similar feedback using sentence transformers and ML algorithms
-- **Theme Extraction**: Automatically identify recurring themes using LLM-based classification
-- **Sentiment Analysis**: Analyze sentiment and emotional tone using VADER and TextBlob
-- **AI-Powered Insights**: Generate actionable recommendations using LangChain and Ollama
-- **Secure REST API**: FastAPI endpoints with authentication, rate limiting, and audit logging
-- **Custom Pipelines**: Flexible LangGraph-based pipeline architecture for custom analysis workflows
-
-## Project Structure
+## 🏗️ Project Structure
 
 ```
 feedback-analytics-agent/
-├── src/
-│   ├── tools/
-│   │   ├── custom_tools.py         # Core analysis tools
-│   │   └── custom_llm.py           # Ollama LLM integration
-│   └── utilities/
-│       ├── reddit_handler.py       # Reddit data collection
-│       ├── theme_issue_classifier.py # LLM theme extraction
-│       ├── review_clustering.py    # ML-based clustering
-│       └── review_summarizer.py    # Review summarization
-├── chroma_db/                      # ChromaDB vector database storage
-├── config/
-│   └── search_queries.csv          # Reddit search queries
-├── .github/
-│   └── copilot-instructions.md     # GitHub Copilot instructions
-├── a2acompatible_analyzer_agent.py # A2A-compatible agent API
-├── custom_apis.py                  # Secure FastAPI endpoints
-├── custom_pipeline.py              # Custom analysis pipelines
-├── feedback_analyzer.py            # LangGraph-based analyzer
-├── query_vectorDB.py               # Vector database query interface
-├── review_analyzer_agent.py        # LangChain agent for review analysis
-├── requirements.txt                # Python dependencies
-├── .env                           # Environment variables (API keys, etc.)
-├── .gitignore                     # Git ignore patterns
-└── Data files (generated):
-    ├── all_posts.csv/json         # Raw collected posts
-    ├── cleaned_reviews.csv/json   # Preprocessed reviews
-    ├── clustered_reviews.csv/json # Clustered feedback data
-    ├── clusters.csv/json          # Cluster metadata
-    ├── curated_reviews.csv/json   # Curated/filtered reviews
-    ├── themes.csv/json            # Extracted themes
-    ├── feedback_analysis_results.csv/json # Final analysis results
-    ├── a2a_themes_results.json    # A2A-compatible themes output
-    └── search_results.csv         # Vector DB query results
+├── backend/                 # FastAPI backend service
+│   ├── app/
+│   │   ├── main.py         # Unified API server
+│   │   ├── api/            # API routes
+│   │   ├── core/           # Business logic (analyzer, vector_db, pipeline)
+│   │   ├── models/         # Pydantic schemas
+│   │   ├── tools/          # Analysis tools (custom_llm, custom_tools)
+│   │   └── utilities/      # Helper modules (reddit, clustering, themes)
+│   ├── config/             # Configuration files
+│   ├── requirements.txt    # Python dependencies
+│   └── README.md          # Backend documentation
+├── frontend/               # React + Tailwind UI (in development)
+├── docs/                   # Documentation
+│   ├── FUNCTIONALITY.md    # Complete feature list
+│   ├── USER_GUIDE.md       # User documentation
+│   └── GETTING_STARTED.md  # Detailed setup guide
+├── chroma_db/             # Vector database storage
+├── .env                   # Environment configuration
+├── .gitignore
+└── README.md              # This file
 ```
 
-## Installation
+## ✨ Features
+
+### Backend Capabilities
+- **A2A Compatible Interface**: Standardized REST API for agent-to-agent communication
+- **Automated Data Collection**: Reddit API integration using PRAW
+- **Vector Database Storage**: Semantic search with ChromaDB
+- **Intelligent Clustering**: ML-based grouping using sentence transformers
+- **Theme Extraction**: LLM-powered theme and issue classification
+- **Sentiment Analysis**: VADER and TextBlob sentiment scoring
+- **AI-Powered Insights**: LangChain and Ollama integration
+- **Secure REST API**: API key auth, rate limiting, input validation
+- **Custom Pipelines**: LangGraph-based workflow orchestration
+
+### Frontend (Coming Soon)
+- **Modern React UI**: Built with React 18 and TypeScript
+- **Tailwind CSS**: Google Material Design inspired styling
+- **Real-time Analysis**: Interactive feedback exploration
+- **Data Visualization**: Charts and insights dashboard
+- **Responsive Design**: Desktop and mobile support
+    ├── clustered_reviews.csv/json # Clustered feedback data
+## 🚀 Quick Start
 
 ### Prerequisites
+- Python 3.8+
+- Node.js 18+ (for frontend)
+- Ollama (for AI)
+- Reddit API credentials
 
-- Python 3.8 or higher
-- pip package manager
-- Ollama (for local LLM inference)
-- Reddit API credentials (for data collection)
+### Backend Setup
 
-### Setup
+1. **Navigate to backend:**
+   ```bash
+   cd backend
+   ```
 
-1. Clone the repository:
-    ```bash
-    git clone https://github.com/yourusername/feedback-analytics-agent.git
-    cd feedback-analytics-agent
-    ```
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2. Create and activate a virtual environment:
-    ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows: venv\Scripts\activate
-    ```
+3. **Configure environment:**
+   Create `backend/.env`:
+   ```env
+   # Reddit API
+   REDDIT_CLIENT_ID=your_client_id
+   REDDIT_CLIENT_SECRET=your_secret
+   REDDIT_USER_AGENT=FeedbackAnalytics/1.0
+   
+   # API Security
+   API_KEY=your_secure_api_key
+   
+   # Ollama LLM
+   BASE_URL=http://localhost:11434
+   ```
 
-3. Install dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
+4. **Start Ollama:**
+   ```bash
+   ollama serve
+   ollama pull mistral
+   ```
 
-4. Install and start Ollama:
-    ```bash
-    # Visit https://ollama.ai for installation instructions
-    ollama pull mistral  # or your preferred model
-    ollama serve
-    ```
+5. **Run backend:**
+   ```bash
+   cd app
+   python main.py
+   ```
 
-5. Configure environment variables in `.env`:
-    ```env
-    # Ollama LLM Configuration
-    BASE_URL=http://localhost:11434
-    API_KEY=Ollama
-    
-    # Model Selection
-    INFERENCE_MODEL=mistral:latest
-    VISION_MODEL=llava
-    EMBEDDING_MODEL=nomic-embed-text
-    
-    # Model Behavior Parameters
-    MODEL_TEMPERATURE=0.0
-    MODEL_SEED=42
-    MODEL_TOP_K=10
-    MODEL_MAX_TOKENS=100
-    
-    # Reddit API Credentials
-    REDDIT_CLIENT_ID=your_client_id
-    REDDIT_CLIENT_SECRET=your_client_secret
-    REDDIT_USER_AGENT=FeedbackAnalyzer/1.0
-    TIME_FILTER=month
-    NUM_POSTS=100
-    
-    # Vector Database
-    CHROMA_DB_PATH=./chroma_db
-    REVIEW_COLLECTION_NAME=reviews
-    EMBEDDING_BATCH_SIZE=100
-    UPSERT_BATCH_SIZE=500
-    
-    # API Security
-    API_KEY=your_secure_api_key  # Auto-generated if not set
-    ```
+Backend API: http://localhost:8000
+API Docs: http://localhost:8000/api/docs
 
-6. Configure Reddit search queries in [`config/search_queries.csv`](config/search_queries.csv):
-    ```csv
-    queries
-    Pixel Vs iPhone
-    Android battery issues
-    iOS camera problems
-    ```
-
-## Usage
-
-### 1. A2A-Compatible Agent API (Recommended)
-
-Start the A2A-compatible agent server:
+### Frontend Setup (Coming Soon)
 
 ```bash
-python a2acompatible_analyzer_agent.py
+cd frontend
+npm install
+npm run dev
 ```
 
-The agent will be available at `http://127.0.0.1:8001` with standardized A2A endpoints.
+## 📡 API Usage Examples
 
-#### A2A Endpoints
+### Health Check
+```bash
+curl http://localhost:8000/api/health
+```
 
-**Health Check & Discovery** (No auth required)
+### Analyze Feedback
+```bash
+curl -X POST http://localhost:8000/api/analyze \
+  -H "X-API-Key: your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "Pixel 9 battery problems",
+    "n_results": 50
+  }'
+```
+
+### Search Reviews
+```bash
+curl -X POST http://localhost:8000/api/search \
+  -H "X-API-Key: your_key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "camera quality issues",
+    "n_results": 100
+  }'
+```
+
+## 📚 Documentation
+
+- **[Backend README](backend/README.md)** - Backend setup and API reference
+- **[Functionality Guide](docs/FUNCTIONALITY.md)** - Complete feature list
+- **[User Guide](docs/USER_GUIDE.md)** - How to use the system
+- **[Getting Started](docs/GETTING_STARTED.md)** - Detailed setup instructions
+
+## 🔧 Development
+
+### Project Status
+- ✅ Backend API - Complete
+- ✅ Data collection pipeline - Complete  
+- ✅ Analysis engine - Complete
+- ✅ Documentation - Complete
+- 🚧 React Frontend - Starting Soon
+
+### Technology Stack
+
+**Backend:**
+- FastAPI - Web framework
+- LangChain/LangGraph - LLM orchestration
+- ChromaDB - Vector database
+- Ollama - Local LLM
+- PRAW - Reddit API
+- scikit-learn - ML clustering
+
+**Frontend (Planned):**
+- React 18 + TypeScript
+- Tailwind CSS - Google colors
+- Vite - Build tool
+- Axios - HTTP client
+- React Query - Data fetching
+
+## 🛡️ Security
+
+- API key authentication
+- Rate limiting (30 req/min)
+- Input validation
+- CORS configuration
+- Secure file operations
+- Request logging
+
+## 🎯 Roadmap
+
+- [x] Backend API development
+- [x] Data collection and storage
+- [x] Analysis pipeline
+- [x] A2A compatibility
+- [x] Documentation
+- [ ] React frontend with Tailwind
+- [ ] Data visualization dashboard
+- [ ] User authentication
+- [ ] Docker containerization
+- [ ] Cloud deployment
+
+---
+
+**Current Status**: Backend restructured and ready. Frontend development next.
 ```bash
 curl http://127.0.0.1:8001/health
 ```

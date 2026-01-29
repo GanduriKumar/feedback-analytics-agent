@@ -1,7 +1,7 @@
-from src.utilities.reddit_handler import RedditHandler
-from src.utilities.review_summarizer import ReviewSummarizer
-from src.utilities.review_clustering import AssessClusters
-from src.utilities.theme_issue_classifier import ThemeClassifier
+from app.utilities.reddit_handler import RedditHandler
+from app.utilities.review_summarizer import ReviewSummarizer
+from app.utilities.review_clustering import AssessClusters
+from app.utilities.theme_issue_classifier import ThemeClassifier
 import pandas, time, re
 
 def fetch_reddit_reviews()-> list:

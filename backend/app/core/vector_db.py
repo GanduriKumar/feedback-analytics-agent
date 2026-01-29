@@ -6,7 +6,7 @@ import dotenv
 import re
 from pathlib import Path
 from typing import List, Optional
-from src.tools.custom_llm import CustomLLMModel
+from app.tools.custom_llm import CustomLLMModel
 
 
 def sanitize_query_text(query_text: str) -> str:

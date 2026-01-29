@@ -1,6 +1,6 @@
 from sklearn.cluster import MiniBatchKMeans
 import numpy as np
-from src.tools.custom_llm import CustomLLMModel
+from app.tools.custom_llm import CustomLLMModel
 import pandas as pd, csv
 
 class AssessClusters:
