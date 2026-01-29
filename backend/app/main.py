@@ -167,6 +167,14 @@ def get_safe_output_path(filename: str) -> Path:
     return output_path
 
 
+def _parse_csv_query_param(value: Optional[str]) -> List[str]:
+    """Parse a comma-separated query param into a list of non-empty strings."""
+    if not value:
+        return []
+    parts = [p.strip() for p in value.split(',')]
+    return [p for p in parts if p]
+
+
 @lru_cache(maxsize=1)
 def get_capabilities() -> List[str]:
     """Get list of available capabilities."""
@@ -306,12 +314,37 @@ async def search_reviews(request: SearchRequest):
     tags=["tools"],
     dependencies=[Depends(verify_api_key), Depends(check_rate_limit)]
 )
-async def collect_reviews():
-    """Fetch raw Reddit reviews based on configured search queries."""
+async def collect_reviews(
+    queries: Optional[str] = Query(None, description="Comma-separated search queries"),
+    sources: Optional[str] = Query(None, description="Comma-separated sources (e.g., reddit)"),
+):
+    """Fetch raw reviews based on selected sources and queries.
+
+    Currently supported sources:
+    - reddit
+
+    If queries are omitted, the backend will fall back to its configured CSV.
+    """
     try:
         logger.info("Collecting reviews from Reddit")
-        
-        reviews = await asyncio.to_thread(fetch_reddit_reviews)
+
+        requested_queries = _parse_csv_query_param(queries)
+        requested_sources = _parse_csv_query_param(sources)
+
+        # Default behavior: if sources not specified, collect from reddit (legacy behavior)
+        if not requested_sources:
+            requested_sources = ["reddit"]
+
+        supported_sources = {"reddit"}
+        unsupported = [s for s in requested_sources if s not in supported_sources]
+
+        if "reddit" not in requested_sources:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"No supported sources selected. Supported: {sorted(supported_sources)}",
+            )
+
+        reviews = await asyncio.to_thread(fetch_reddit_reviews, requested_queries)
         
         if not reviews:
             return JSONResponse(
@@ -319,12 +352,20 @@ async def collect_reviews():
                 content={"detail": "No reviews found"}
             )
         
-        return {
+        resp: Dict[str, Any] = {
             "count": len(reviews),
             "reviews": reviews[:100],  # Limit response size
             "total": len(reviews),
             "timestamp": datetime.now(UTC).isoformat()
         }
+
+        # Optional metadata for UI
+        resp["queries_used"] = requested_queries
+        resp["sources_used"] = ["reddit"]
+        if unsupported:
+            resp["warnings"] = [f"Unsupported sources ignored: {', '.join(unsupported)}"]
+
+        return resp
         
     except Exception as e:
         logger.error(f"Collection failed: {e}", exc_info=True)

@@ -9,15 +9,8 @@ const sources: Array<{ value: DataSource; label: string; enabled: boolean }> = [
 ];
 
 export function SourceSelector() {
-  const { selectedSources, setSelectedSources } = useAppStore();
-
-  const toggle = (s: DataSource) => {
-    if (selectedSources.includes(s)) {
-      setSelectedSources(selectedSources.filter((x) => x !== s));
-    } else {
-      setSelectedSources([...selectedSources, s]);
-    }
-  };
+  const selectedSources = useAppStore((s) => s.selectedSources);
+  const toggleSource = useAppStore((s) => s.toggleSource);
 
   return (
     <section className="space-y-3">
@@ -39,7 +32,7 @@ export function SourceSelector() {
             <input
               type="checkbox"
               checked={selectedSources.includes(s.value)}
-              onChange={() => toggle(s.value)}
+              onChange={() => toggleSource(s.value)}
               disabled={!s.enabled}
               className="h-4 w-4"
             />

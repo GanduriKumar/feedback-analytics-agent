@@ -45,14 +45,32 @@ export interface HealthResponse {
   capabilities: string[];
 }
 
+export interface RedditPost {
+  post_title: string;
+  self_text: string;
+}
+
+export type CollectedReview = RedditPost | string;
+
 export interface CollectResponse {
   count: number;
   total: number;
   timestamp: string;
-  reviews: Array<{ post_title: string; self_text: string } | string>;
+  reviews: CollectedReview[];
+  // optional metadata (if backend provides)
+  queries_used?: string[];
+  sources_used?: string[];
+  warnings?: string[];
 }
 
 export interface AnalyzeRequest {
+  query: string;
+  n_results?: number;
+  user_type?: UserType;
+  llm_config?: LLMConfig;
+}
+
+export interface SearchRequest {
   query: string;
   n_results?: number;
 }
@@ -73,11 +91,37 @@ export interface AnalyzeResponse {
   processing_time?: number;
 }
 
+export interface SearchResponse {
+  query: string;
+  results: string[];
+  count: number;
+  timestamp: string;
+}
+
 export interface ClusterResponse {
-  clusters: Record<string, Array<string | null>>;
+  // Backend returns `Dict[int, List[str]]`, which becomes `Record<string, string[]>` over JSON.
+  clusters: Record<string, string[]>;
   count: number;
   time_taken: number;
   timestamp: string;
+}
+
+export interface CapabilitiesResponse {
+  agent_name: string;
+  version: string;
+  capabilities: string[];
+  endpoints: Record<
+    string,
+    {
+      method: string;
+      description: string;
+      requires_auth: boolean;
+    }
+  >;
+  authentication: {
+    type: string;
+    methods: string[];
+  };
 }
 
 // Frontend report model (derived)

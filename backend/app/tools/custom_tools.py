@@ -1,37 +1,36 @@
+from __future__ import annotations
+
+from pathlib import Path
+from typing import List, Optional
+
+import pandas as pd
+import re
+
 from app.utilities.reddit_handler import RedditHandler
 from app.utilities.review_summarizer import ReviewSummarizer
 from app.utilities.review_clustering import AssessClusters
 from app.utilities.theme_issue_classifier import ThemeClassifier
-import pandas, time, re
 
-def fetch_reddit_reviews()-> list:
-    def fetch_reddit_reviews() -> list:
-        """
-        Fetch Reddit reviews based on search queries from a CSV file.
 
-        This tool reads search queries from './config/search_queries.csv', initializes a RedditHandler
-        with these queries, and fetches relevant Reddit posts. It is designed to be used as a tool
-        by AI agents for retrieving user feedback or reviews from Reddit.
+def _default_search_queries_path() -> Path:
+    # backend/app/tools/custom_tools.py -> backend/
+    backend_root = Path(__file__).resolve().parents[2]
+    return backend_root / "config" / "search_queries.csv"
 
-        Yields:
-            str: Status messages or intermediate results for tracing execution.
-            list: The list of search queries read from the CSV file.
 
-        Returns:
-            list: A list of Reddit posts or reviews fetched based on the search queries.
+def fetch_reddit_reviews(queries: Optional[List[str]] = None) -> list:
+    """Fetch Reddit reviews for the provided queries.
 
-        Example:
-            reviews = fetch_reddit_reviews()
-        """
-    print("Entered review fetcher")
-    # yield "Entered review fetcher <br>"
-    df = pandas.read_csv(f"./config/search_queries.csv")
-    search_queries = [df['queries'][record] for record in range(0, df['queries'].size)]
-    print(search_queries)
-    # yield search_queries
-    reddit = RedditHandler(queries=search_queries)
-    reviews= reddit.fetch_posts()
-    return reviews
+    If `queries` is not provided (or empty), falls back to reading
+    `backend/config/search_queries.csv`.
+    """
+    normalized_queries: List[str] = [q.strip() for q in (queries or []) if q and q.strip()]
+    if not normalized_queries:
+        df = pd.read_csv(_default_search_queries_path())
+        normalized_queries = [str(v).strip() for v in df.get('queries', []) if str(v).strip()]
+
+    reddit = RedditHandler(queries=normalized_queries)
+    return reddit.fetch_posts()
 
 def clean_reviews(reviews:list) -> list:
     """

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { analyzeFeedback, clusterReviews, collectReviews } from '../services/api';
+import { analyzeFeedback, clusterReviews, collectReviews, getApiErrorMessage } from '../services/api';
 import { useAppStore } from '../store/useAppStore';
 import { deriveReport } from '../utils/report';
 
@@ -86,7 +86,12 @@ export function usePipeline() {
       });
 
       const query = searchQueries.join(' | ');
-      const analysis = await analyzeFeedback({ query, n_results: 50 });
+      const analysis = await analyzeFeedback({
+        query,
+        n_results: 50,
+        user_type: userType,
+        llm_config: llmConfig,
+      });
 
       // 5) Derive report
       const report = deriveReport({
@@ -117,9 +122,8 @@ export function usePipeline() {
           themesExtracted: analysis.total_themes,
         },
       });
-    } catch (e: any) {
-      const msg = e?.response?.data?.detail || e?.message || 'Pipeline failed.';
-      setProgress({ stage: 'error', message: msg, progress: 0 });
+    } catch (e: unknown) {
+      setProgress({ stage: 'error', message: getApiErrorMessage(e), progress: 0 });
     }
   }, [
     userType,

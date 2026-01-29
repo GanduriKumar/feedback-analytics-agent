@@ -7,10 +7,27 @@ from typing import List, Dict, Any, Optional
 import re
 
 
+class LLMConfig(BaseModel):
+    """Optional LLM configuration payload from the UI.
+
+    Note: The current backend pipeline may not consume these fields yet.
+    They are accepted so the frontend can be fully wired end-to-end.
+    """
+
+    provider: Optional[str] = Field(None, description="LLM provider (ollama/openai/anthropic/gemini)")
+    model: Optional[str] = Field(None, description="Model name")
+    apiKey: Optional[str] = Field(None, description="Provider API key (if applicable)")
+    baseUrl: Optional[str] = Field(None, description="Base URL for local providers (e.g., Ollama)")
+
+
 class AnalysisRequest(BaseModel):
     """Request model for feedback analysis."""
     query: str = Field(..., min_length=1, max_length=500, description="Product-related search query")
     n_results: Optional[int] = Field(50, ge=1, le=1000, description="Number of reviews to analyze")
+
+    # Optional UI context
+    user_type: Optional[str] = Field(None, description="User type / persona (frontend context)")
+    llm_config: Optional[LLMConfig] = Field(None, description="Optional LLM configuration from UI")
     
     @field_validator('query')
     @classmethod

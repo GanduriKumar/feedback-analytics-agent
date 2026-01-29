@@ -3,7 +3,9 @@ import { Plus, X, Search } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 
 export function SearchInput() {
-  const { searchQueries, setSearchQueries } = useAppStore();
+  const searchQueries = useAppStore((s) => s.searchQueries);
+  const addSearchQuery = useAppStore((s) => s.addSearchQuery);
+  const removeSearchQuery = useAppStore((s) => s.removeSearchQuery);
   const [value, setValue] = useState('');
 
   const canAdd = useMemo(() => value.trim().length > 0, [value]);
@@ -11,13 +13,11 @@ export function SearchInput() {
   const add = () => {
     const v = value.trim();
     if (!v) return;
-    setSearchQueries([...searchQueries, v]);
+    addSearchQuery(v);
     setValue('');
   };
 
-  const remove = (idx: number) => {
-    setSearchQueries(searchQueries.filter((_, i) => i !== idx));
-  };
+  const remove = (q: string) => removeSearchQuery(q);
 
   return (
     <section className="space-y-3">
@@ -58,10 +58,10 @@ export function SearchInput() {
 
       {searchQueries.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {searchQueries.map((q, idx) => (
-            <div key={`${q}-${idx}`} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-google-blue-50 border border-google-blue-200">
+          {searchQueries.map((q) => (
+            <div key={q} className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-google-blue-50 border border-google-blue-200">
               <span className="text-sm text-google-gray-900">{q}</span>
-              <button type="button" onClick={() => remove(idx)} className="text-google-gray-600 hover:text-google-red-600">
+              <button type="button" onClick={() => remove(q)} className="text-google-gray-600 hover:text-google-red-600">
                 <X className="w-4 h-4" />
               </button>
             </div>
