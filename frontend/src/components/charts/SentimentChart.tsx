@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import type { AnalysisReport } from '../../types';
+import { labelColorClass } from '../../utils/labelColor';
 
 const COLORS: Record<string, string> = {
   positive: '#1E8E3E',
@@ -17,7 +18,7 @@ export function SentimentChart({ report }: { report: AnalysisReport }) {
 
   return (
     <div className="rounded-xl border border-google-gray-200 bg-white p-5 shadow-sm">
-      <div className="font-semibold text-google-gray-900">Sentiment Distribution</div>
+      <div className={['font-semibold', labelColorClass('Sentiment Distribution')].join(' ')}>Sentiment Distribution</div>
       <div className="mt-4 h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

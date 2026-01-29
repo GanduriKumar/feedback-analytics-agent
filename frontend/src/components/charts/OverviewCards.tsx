@@ -1,5 +1,6 @@
 import { FileText, Layers, Tag, TrendingUp } from 'lucide-react';
 import type { AnalysisReport } from '../../types';
+import { labelColorClass } from '../../utils/labelColor';
 
 export function OverviewCards({ report }: { report: AnalysisReport }) {
   const cards = [
@@ -45,7 +46,7 @@ export function OverviewCards({ report }: { report: AnalysisReport }) {
           <div key={c.label} className={[c.bg, c.border, 'border rounded-xl p-5 shadow-sm'].join(' ')}>
             <div className="flex items-center justify-between">
               <div>
-                <div className="text-sm text-google-gray-700">{c.label}</div>
+                <div className={['text-sm font-semibold', labelColorClass(c.label)].join(' ')}>{c.label}</div>
                 <div className="text-3xl font-semibold text-google-gray-900 mt-1">{c.value}</div>
               </div>
               <Icon className={['w-8 h-8', c.iconColor].join(' ')} />

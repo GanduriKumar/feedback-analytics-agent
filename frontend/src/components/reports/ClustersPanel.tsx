@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import type { ClusterResponse } from '../../types';
+import { labelColorClass } from '../../utils/labelColor';
 
 export function ClustersPanel({ clusters }: { clusters: ClusterResponse }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -12,7 +13,7 @@ export function ClustersPanel({ clusters }: { clusters: ClusterResponse }) {
   return (
     <div className="rounded-xl border border-google-gray-200 bg-white overflow-hidden shadow-sm">
       <div className="px-5 py-4 border-b border-google-gray-200">
-        <div className="font-semibold text-google-gray-900">Clusters</div>
+        <div className={['font-semibold', labelColorClass('Clusters')].join(' ')}>Clusters</div>
         <div className="text-sm text-google-gray-600">Grouped reviews by semantic similarity.</div>
       </div>
 

@@ -1,4 +1,5 @@
 import type { ThemeData } from '../../types';
+import { labelColorClass } from '../../utils/labelColor';
 
 function pillColor(sentiment?: string | null) {
   switch ((sentiment || '').toLowerCase()) {
@@ -19,7 +20,7 @@ export function ThemesTable({ themes }: { themes: ThemeData[] }) {
   return (
     <div className="rounded-xl border border-google-gray-200 bg-white overflow-hidden shadow-sm">
       <div className="px-5 py-4 border-b border-google-gray-200">
-        <div className="font-semibold text-google-gray-900">Extracted Themes</div>
+        <div className={['font-semibold', labelColorClass('Extracted Themes')].join(' ')}>Extracted Themes</div>
         <div className="text-sm text-google-gray-600">Themes extracted from clustered summaries.</div>
       </div>
       <div className="overflow-auto">

@@ -1,5 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import type { AnalysisReport } from '../../types';
+import { labelColorClass } from '../../utils/labelColor';
 
 export function IssueCategoriesChart({ report }: { report: AnalysisReport }) {
   const data = Object.entries(report.issue_categories)
@@ -9,7 +10,7 @@ export function IssueCategoriesChart({ report }: { report: AnalysisReport }) {
 
   return (
     <div className="rounded-xl border border-google-gray-200 bg-white p-5 shadow-sm">
-      <div className="font-semibold text-google-gray-900">Top Issue Categories</div>
+      <div className={['font-semibold', labelColorClass('Top Issue Categories')].join(' ')}>Top Issue Categories</div>
       <div className="mt-4 h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} layout="vertical" margin={{ left: 90 }}>
