@@ -55,8 +55,28 @@ class RedditHandler:
         self.client_search_queries = queries
         
         # Define default subreddits for mobile device feedback analysis
-        # self.subreddits = ["GooglePixel","Pixel","Google","pixel_phones","Smartphones","Android","apple","applesucks","iphone"]
-        self.subreddits = json.loads(os.getenv("SUBREDDITS", "[]"))
+        default_subreddits = [
+            "GooglePixel",
+            "Pixel",
+            "Google",
+            "pixel_phones",
+            "Smartphones",
+            "Android",
+            "apple",
+            "applesucks",
+            "iphone",
+        ]
+
+        raw_subreddits = os.getenv("SUBREDDITS", "[]")
+        try:
+            parsed = json.loads(raw_subreddits)
+        except json.JSONDecodeError:
+            parsed = []
+
+        if isinstance(parsed, list) and any(str(s).strip() for s in parsed):
+            self.subreddits = [str(s).strip() for s in parsed if str(s).strip()]
+        else:
+            self.subreddits = default_subreddits
         
         # Performance optimization: connection pooling
         self._reddit_instance = None

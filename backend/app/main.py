@@ -108,7 +108,9 @@ app.add_middleware(
         "http://localhost:3000",
         "http://localhost:3001", 
         "http://127.0.0.1:3000",
-        "http://127.0.0.1:3001"
+        "http://127.0.0.1:3001",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173"
     ],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -119,10 +121,15 @@ app.add_middleware(
 
 # Security middleware
 async def verify_api_key(
+    request: Request,
     api_key_header: Optional[str] = Security(api_key_header),
     api_key_query: Optional[str] = Security(api_key_query)
 ) -> str:
-    """Verify API key from header or query parameter."""
+    """Verify API key from header or query parameter. Skip for OPTIONS requests."""
+    # Allow OPTIONS requests to pass through for CORS preflight
+    if request.method == "OPTIONS":
+        return "options"
+    
     key = api_key_header or api_key_query
     
     if not key or not secrets.compare_digest(key, API_KEY):
@@ -136,7 +143,11 @@ async def verify_api_key(
 
 
 async def check_rate_limit(request: Request):
-    """Check rate limit for the client."""
+    """Check rate limit for the client. Skip for OPTIONS requests."""
+    # Allow OPTIONS requests to pass through for CORS preflight
+    if request.method == "OPTIONS":
+        return
+    
     client_ip = request.client.host
     
     if not rate_limiter.is_allowed(client_ip):
@@ -347,10 +358,15 @@ async def collect_reviews(
         reviews = await asyncio.to_thread(fetch_reddit_reviews, requested_queries)
         
         if not reviews:
-            return JSONResponse(
-                status_code=status.HTTP_404_NOT_FOUND,
-                content={"detail": "No reviews found"}
-            )
+            return {
+                "count": 0,
+                "reviews": [],
+                "total": 0,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "queries_used": requested_queries,
+                "sources_used": ["reddit"],
+                "warnings": ["No reviews found"],
+            }
         
         resp: Dict[str, Any] = {
             "count": len(reviews),

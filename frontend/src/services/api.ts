@@ -22,6 +22,44 @@ export const api = axios.create({
   timeout: 10 * 60 * 1000, // 10 minutes (collection/analysis can be slow)
 });
 
+// Request interceptor for debugging
+api.interceptors.request.use(
+  (config) => {
+    console.log('API Request:', {
+      method: config.method,
+      url: config.url,
+      baseURL: config.baseURL,
+      headers: config.headers,
+    });
+    return config;
+  },
+  (error) => {
+    console.error('Request Error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Response interceptor for debugging
+api.interceptors.response.use(
+  (response) => {
+    console.log('API Response:', {
+      status: response.status,
+      url: response.config.url,
+      data: response.data,
+    });
+    return response;
+  },
+  (error) => {
+    console.error('API Error:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+      url: error.config?.url,
+    });
+    return Promise.reject(error);
+  }
+);
+
 function getDetailFromBody(body: unknown): string | undefined {
   if (!body || typeof body !== 'object') return undefined;
   const maybeDetail = (body as any).detail;
