@@ -78,7 +78,7 @@ export function usePipeline() {
         details: { reviewsCleaned: unique.length }
       });
       
-      const clusterResponse = await clusterReviews(unique);
+      const clusterResponse = await clusterReviews(unique, llmConfig);
 
       // Stage 5: Analyzing
       setProgress({

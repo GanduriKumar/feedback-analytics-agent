@@ -20,6 +20,12 @@ class LLMConfig(BaseModel):
     baseUrl: Optional[str] = Field(None, description="Base URL for local providers (e.g., Ollama)")
 
 
+class ClusterRequest(BaseModel):
+    """Request model for clustering reviews with optional LLM configuration."""
+    reviews: List[str] = Field(..., description="List of review texts to cluster")
+    llm_config: Optional[LLMConfig] = Field(None, description="Optional LLM configuration from UI")
+
+
 class AnalysisRequest(BaseModel):
     """Request model for feedback analysis."""
     query: str = Field(..., min_length=1, max_length=500, description="Product-related search query")
@@ -102,7 +108,7 @@ class HealthResponse(BaseModel):
 
 class ClusterResponse(BaseModel):
     """Response model for clustering results."""
-    clusters: Dict[int, List[str]] = Field(..., description="Clustered reviews")
+    clusters: Dict[int, List[Optional[str]]] = Field(..., description="Clustered reviews (may contain None for padding)")
     count: int = Field(..., description="Number of clusters")
     time_taken: float = Field(..., description="Processing time in seconds")
     timestamp: str = Field(..., description="Timestamp")

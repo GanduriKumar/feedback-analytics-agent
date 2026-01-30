@@ -10,6 +10,7 @@ from app.utilities.reddit_handler import RedditHandler
 from app.utilities.review_summarizer import ReviewSummarizer
 from app.utilities.review_clustering import AssessClusters
 from app.utilities.theme_issue_classifier import ThemeClassifier
+from app.models.schemas import LLMConfig
 
 
 def _default_search_queries_path() -> Path:
@@ -76,7 +77,7 @@ def clean_reviews(reviews:list) -> list:
     cleaned_reviews = [re.sub(r'[^A-Za-z0-9 ]+', '',review) for review in combined_reviews]
     return cleaned_reviews
 
-def summarize_clusters(clusters: dict)->list:
+def summarize_clusters(clusters: dict, llm_config: LLMConfig | None = None)->list:
     """
     Tool Name: summarize_clusters
     Purpose: Aggregate and summarize grouped (clustered) user reviews or text feedback.
@@ -154,11 +155,11 @@ def summarize_clusters(clusters: dict)->list:
     version: "1.0.0"
     """
     print("Entered the cluster summarizer")
-    summarizer = ReviewSummarizer()
+    summarizer = ReviewSummarizer(llm_config)
     curated_reviews= summarizer.summarize_clusters(clusters)
     return curated_reviews
 
-def assess_clusters(cleaned_reviews: list) -> dict:
+def assess_clusters(cleaned_reviews: list, llm_config: LLMConfig | None = None) -> dict:
     """
     Analyze cleaned customer reviews and return cluster assessments.
 
@@ -212,11 +213,11 @@ def assess_clusters(cleaned_reviews: list) -> dict:
     print("Entered the cluster assessor")
     # print(type(cleaned_reviews))
     # print(cleaned_reviews)
-    cluster_assessor = AssessClusters(cleaned_reviews)
+    cluster_assessor = AssessClusters(cleaned_reviews, llm_config=llm_config)
     clusters = cluster_assessor.assess_clusters()
     return clusters
 
-def extract_themes(curated_reviews:list)->list:
+def extract_themes(curated_reviews:list, llm_config: LLMConfig | None = None)->list:
     """
     Extract themes from a list of curated reviews using AI-powered classification.
 
@@ -251,6 +252,6 @@ def extract_themes(curated_reviews:list)->list:
         - Each review is processed independently
     """
     print("Entered the themes extractor")
-    theme_classifier = ThemeClassifier()
+    theme_classifier = ThemeClassifier(llm_config)
     themes = [theme_classifier.extract_themes(review) for review in curated_reviews]
     return themes

@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import chromadb
+from chromadb.errors import InvalidArgumentError
 import csv
 import dotenv
 import re
@@ -142,8 +143,8 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
         - Connects to a persistent ChromaDB instance at './chroma_db'
         - Writes search results to output CSV file in the current directory
     
-    Environment Variables Required:
-        REVIEW_COLLECTION_NAME: Name of the ChromaDB collection to query
+    Environment Variables:
+        REVIEW_COLLECTION_NAME: Base name of the ChromaDB collection (default: 'reviews')
     
     Output File:
         CSV file containing the documents that match the query,
@@ -171,22 +172,29 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
         
         # Load environment variables
         dotenv.load_dotenv()
-        collection_name = os.getenv("REVIEW_COLLECTION_NAME")
+        collection_name = os.getenv("REVIEW_COLLECTION_NAME", "reviews")
         
-        if not collection_name:
-            raise ValueError("REVIEW_COLLECTION_NAME environment variable not set")
-        
+        # Initialize the custom LLM model for embeddings
+        model = CustomLLMModel()
+        collection_name = model.get_embedding_collection_name(collection_name)
+
         # Create a persistent Chroma client with validated path
         client = chromadb.PersistentClient(path=str(db_path))
         
-        # Get the collection (use get instead of get_or_create for read-only operation)
+        # Get or create the collection to avoid failing on first-run setups
         try:
-            reviews_collection = client.get_collection(name=collection_name)
+            reviews_collection = client.get_or_create_collection(name=collection_name)
         except Exception as e:
             raise RuntimeError(f"Failed to access collection '{collection_name}': {str(e)}")
-        
-        # Initialize the custom LLM model for Ollama integration
-        model = CustomLLMModel()
+
+        # Short-circuit if the collection is empty
+        try:
+            existing_count = reviews_collection.count()
+        except Exception as e:
+            raise RuntimeError(f"Failed to read collection '{collection_name}': {str(e)}")
+
+        if existing_count == 0:
+            return []
         
         # Create embedding model for converting text to vectors
         embeddings_model = model.create_embedding()
@@ -213,6 +221,13 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
         
         return documents
         
+    except InvalidArgumentError as e:
+        raise RuntimeError(
+            "Embedding dimension mismatch between the stored collection and the current embedding model. "
+            "Rebuild the Chroma collection using the active embedding model or point REVIEW_COLLECTION_NAME "
+            "to a collection created with the same model. "
+            f"Details: {str(e)}"
+        )
     except ValueError as e:
         raise ValueError(f"Input validation error: {str(e)}")
     except RuntimeError as e:

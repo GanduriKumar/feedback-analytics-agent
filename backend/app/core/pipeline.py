@@ -48,6 +48,7 @@ if not cleaned_reviews:
 # Initialize the custom LLM model for Ollama integration (lazy loading)
 print("\n[4/4] Initializing embedding model...")
 model = CustomLLMModel()
+effective_collection_name = model.get_embedding_collection_name(REVIEW_COLLECTION_NAME)
 embeddings_model = model.create_embedding()
 
 # Batch embedding generation (10x faster than one-by-one)
@@ -104,14 +105,14 @@ try:
     
     # Get or create collection
     reviews_collection = client.get_or_create_collection(
-        name=REVIEW_COLLECTION_NAME,
+        name=effective_collection_name,
         metadata={"hnsw:space": "cosine"}  # Use cosine similarity for better semantic search
     )
     
     # Check existing documents to avoid re-adding
     try:
         existing_count = reviews_collection.count()
-        print(f"Collection '{REVIEW_COLLECTION_NAME}' currently contains {existing_count} documents")
+        print(f"Collection '{effective_collection_name}' currently contains {existing_count} documents")
     except:
         existing_count = 0
     

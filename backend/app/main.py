@@ -33,7 +33,7 @@ import pandas as pd
 # Import models
 from app.models.schemas import (
     AnalysisRequest, SearchRequest, ThemeData, AnalysisResponse,
-    SearchResponse, HealthResponse, ClusterResponse
+    SearchResponse, HealthResponse, ClusterResponse, ClusterRequest
 )
 
 # Import core functionality
@@ -253,7 +253,8 @@ async def analyze_feedback(request: AnalysisRequest):
         # Execute pipeline in thread pool
         themes = await asyncio.to_thread(
             execute_graph_pipeline,
-            request.query
+            request.query,
+            request.llm_config
         )
         
         end_time = datetime.now(UTC)
@@ -397,13 +398,13 @@ async def collect_reviews(
     tags=["tools"],
     dependencies=[Depends(verify_api_key), Depends(check_rate_limit)]
 )
-async def cluster_reviews(reviews: List[str]):
+async def cluster_reviews(payload: ClusterRequest):
     """Cluster provided reviews by semantic similarity."""
     try:
-        logger.info(f"Clustering {len(reviews)} reviews")
+        logger.info(f"Clustering {len(payload.reviews)} reviews")
         start_time = time.time()
         
-        clusters = await asyncio.to_thread(assess_clusters, reviews)
+        clusters = await asyncio.to_thread(assess_clusters, payload.reviews, payload.llm_config)
         
         end_time = time.time()
         processing_time = end_time - start_time

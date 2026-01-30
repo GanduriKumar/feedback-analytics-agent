@@ -1,7 +1,9 @@
 from app.tools.custom_llm import CustomLLMModel
+from app.models.schemas import LLMConfig
 from pydantic import BaseModel
 import pandas as pd, csv
 import re
+import json
 from functools import lru_cache
 
 class Themes(BaseModel):
@@ -92,8 +94,9 @@ class ThemeClassifier:
       callers should handle unexpected model outputs or consider additional retry/
       sanitization logic for production use.
     """
-    def __init__(self):
-        self.chat = CustomLLMModel().getchatinstance()
+    def __init__(self, llm_config: LLMConfig | None = None):
+        self._model = CustomLLMModel(llm_config)
+        self.chat = self._model.getchatinstance()
         # Cache the prompt to avoid string concatenation overhead
         self._prompt_template = (
             "Extract the following information from the given review text. "
@@ -122,16 +125,50 @@ class ThemeClassifier:
         if len(review) > max_length:
             review = review[:max_length]
         return review.strip()
+
+    @staticmethod
+    def _safe_extract_json(content: str) -> dict | None:
+        if not content:
+            return None
+
+        try:
+            parsed = json.loads(content)
+            if isinstance(parsed, dict):
+                return parsed
+        except json.JSONDecodeError:
+            pass
+
+        # Try to extract the first JSON object from the text
+        start = content.find("{")
+        if start == -1:
+            return None
+
+        depth = 0
+        for i in range(start, len(content)):
+            ch = content[i]
+            if ch == "{":
+                depth += 1
+            elif ch == "}":
+                depth -= 1
+                if depth == 0:
+                    candidate = content[start : i + 1]
+                    try:
+                        parsed = json.loads(candidate)
+                        if isinstance(parsed, dict):
+                            return parsed
+                    except json.JSONDecodeError:
+                        return None
+        return None
     
     def extract_themes(self, review: str) -> dict:
         """Extract themes with input validation and caching"""
         if not review or not isinstance(review, str):
             return {
-                "product": None,
-                "sentiment": None,
-                "theme": None,
-                "classification": None,
-                "issue_description": None,
+                "product": "unknown",
+                "sentiment": "unknown",
+                "theme": "unknown",
+                "classification": "unknown",
+                "issue_description": "",
             }
         
         # Use cached sanitization
@@ -141,12 +178,20 @@ class ThemeClassifier:
         prompt = self._prompt_template.format(review=sanitized_review)
         
         try:
-            response = self.chat.invoke(
-                input=prompt,
-                format=Themes.model_json_schema()
-            )
-            result = Themes.model_validate_json(response.content)
-            
+            if self._model.PROVIDER == "ollama":
+                response = self.chat.invoke(
+                    input=prompt,
+                    format=Themes.model_json_schema()
+                )
+            else:
+                response = self.chat.invoke(input=prompt)
+
+            parsed = self._safe_extract_json(getattr(response, "content", ""))
+            if parsed is None:
+                raise ValueError("Model did not return valid JSON")
+
+            result = Themes.model_validate(parsed)
+
             return {
                 "product": result.product,
                 "sentiment": result.sentiment,
@@ -157,9 +202,9 @@ class ThemeClassifier:
         except Exception as e:
             print(f"Error extracting themes: {e}")
             return {
-                "product": None,
-                "sentiment": None,
-                "theme": None,
-                "classification": None,
-                "issue_description": None,
+                "product": "unknown",
+                "sentiment": "unknown",
+                "theme": "unknown",
+                "classification": "unknown",
+                "issue_description": "",
             }

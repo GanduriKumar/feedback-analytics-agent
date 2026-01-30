@@ -107,6 +107,11 @@ export interface ClusterResponse {
   timestamp: string;
 }
 
+export interface ClusterRequest {
+  reviews: string[];
+  llm_config?: LLMConfig;
+}
+
 export interface CapabilitiesResponse {
   agent_name: string;
   version: string;

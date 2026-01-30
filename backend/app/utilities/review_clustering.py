@@ -1,6 +1,7 @@
 from sklearn.cluster import MiniBatchKMeans
 import numpy as np
 from app.tools.custom_llm import CustomLLMModel
+from app.models.schemas import LLMConfig
 import pandas as pd, csv
 
 class AssessClusters:
@@ -59,30 +60,37 @@ class AssessClusters:
       >>> for cluster_id, reviews in clusters.items():
       >>>     print(f"Cluster {cluster_id}: {len([r for r in reviews if r])} reviews")
     """
-    def __init__(self, reviews: list[str], num_clusters: int = 20):
+    def __init__(self, reviews: list[str], num_clusters: int = 20, llm_config: LLMConfig | None = None):
         self.reviews = reviews
         self.num_clusters = num_clusters
         self._embedding_model = None
+        self._llm_config = llm_config
     
     @property
     def embedding_model(self):
         """Lazy load embedding model"""
         if self._embedding_model is None:
-            self._embedding_model = CustomLLMModel().create_embedding()
+            self._embedding_model = CustomLLMModel(self._llm_config).create_embedding()
         return self._embedding_model
     
     def assess_clusters(self) -> dict:
         """Optimized clustering with MiniBatchKMeans"""
+        if not self.reviews:
+            return {}
+
         # Batch embedding generation (more efficient than one-by-one)
         embeddings = self.embedding_model.embed_documents(self.reviews)
         embeddings_array = np.array(embeddings)
+
+        n_samples = len(self.reviews)
+        n_clusters = max(1, min(self.num_clusters, n_samples))
         
         # Use MiniBatchKMeans for large datasets (10x faster)
         kmeans = MiniBatchKMeans(
-            n_clusters=self.num_clusters,
-            random_state=42,
-            batch_size=1000,  # Process in batches
-            max_iter=100
+          n_clusters=n_clusters,
+          random_state=42,
+          batch_size=1000,  # Process in batches
+          max_iter=100
         )
         labels = kmeans.fit_predict(embeddings_array)
         

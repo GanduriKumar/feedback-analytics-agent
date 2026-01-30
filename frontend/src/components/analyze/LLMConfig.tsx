@@ -67,8 +67,8 @@ export function LLMConfig() {
       </div>
 
       <p className="text-xs text-google-gray-600">
-        These settings are stored locally in your browser. The current backend pipeline primarily uses its server-side
-        configuration; this UI is ready for future provider switching.
+        These settings are stored locally in your browser and are sent with each analysis request so the backend uses
+        your selected provider/model for clustering, summarization, and theme extraction.
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

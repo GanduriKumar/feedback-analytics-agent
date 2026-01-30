@@ -4,6 +4,7 @@ import type {
   AnalyzeResponse,
   CapabilitiesResponse,
   ClusterResponse,
+  ClusterRequest,
   CollectResponse,
   HealthResponse,
   SearchRequest,
@@ -105,8 +106,9 @@ export async function collectReviews(params?: { queries?: string[]; sources?: st
   return data;
 }
 
-export async function clusterReviews(reviews: string[]) {
-  const { data } = await api.post<ClusterResponse>('/tools/cluster', reviews);
+export async function clusterReviews(reviews: string[], llmConfig?: ClusterRequest['llm_config']) {
+  const payload: ClusterRequest = { reviews, llm_config: llmConfig };
+  const { data } = await api.post<ClusterResponse>('/tools/cluster', payload);
   return data;
 }
 

@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 from app.core.vector_db import query_vector_db
 from app.tools.custom_tools import assess_clusters, summarize_clusters, extract_themes
+from app.models.schemas import LLMConfig
 import pandas as pd
 from typing import Optional
 import os
@@ -182,7 +183,7 @@ def query_vector_db_tool(state:InputState)->InputState:
     return InputState(query=state.query, extracted_reviews=reviews)
 
 # Node 2: Group extracted reviews into clusters based on similarity
-def assess_clusters_tool(state:InputState)->ClusterState:
+def assess_clusters_tool(state:InputState, llm_config: LLMConfig | None = None)->ClusterState:
     """
     AI Tool: assess_clusters_tool
     Purpose:
@@ -211,11 +212,11 @@ def assess_clusters_tool(state:InputState)->ClusterState:
       InputState(extracted_reviews=["Review 1", "Review 2"]) -> assess_clusters_tool() ->
       ClusterState(clusters={0: ["Review 1"], 1: ["Review 2"]})
     """
-    clusters = assess_clusters(state.extracted_reviews)
+    clusters = assess_clusters(state.extracted_reviews, llm_config=llm_config)
     return ClusterState(query=state.query, extracted_reviews=state.extracted_reviews, clusters=clusters)
     
 # Node 3: Generate concise summaries for each cluster of reviews
-def summarize_clusters_tool(state:ClusterState)->SummaryState:
+def summarize_clusters_tool(state:ClusterState, llm_config: LLMConfig | None = None)->SummaryState:
     """
     AI Tool: summarize_clusters_tool
     Purpose:
@@ -244,11 +245,11 @@ def summarize_clusters_tool(state:ClusterState)->SummaryState:
       ClusterState(clusters={0: ["Bad battery", "Dies fast"]}) -> summarize_clusters_tool() ->
       SummaryState(cluster_summaries=["Users report rapid battery drain issues"])
     """
-    summaries = summarize_clusters(state.clusters)
+    summaries = summarize_clusters(state.clusters, llm_config=llm_config)
     return SummaryState(query=state.query, extracted_reviews=state.extracted_reviews, clusters=state.clusters, cluster_summaries=summaries)
     
 # Node 4: Extract key themes and patterns from cluster summaries
-def extract_themes_tool(state:SummaryState)->ThemesState:
+def extract_themes_tool(state:SummaryState, llm_config: LLMConfig | None = None)->ThemesState:
     """
     AI Tool: extract_themes_tool
     Purpose:
@@ -280,11 +281,11 @@ def extract_themes_tool(state:SummaryState)->ThemesState:
       SummaryState(cluster_summaries=["Battery issues", "Great camera"]) -> extract_themes_tool() ->
       ThemesState(themes=[{"theme": "Battery", "sentiment": "negative"}, {"theme": "Camera", "sentiment": "positive"}])
     """
-    themes= extract_themes(state.cluster_summaries)
+    themes= extract_themes(state.cluster_summaries, llm_config=llm_config)
     return ThemesState(query=state.query, extracted_reviews=state.extracted_reviews, clusters=state.clusters, cluster_summaries=state.cluster_summaries, themes=themes)
 
 
-def execute_graph_pipeline(user_query: str):
+def execute_graph_pipeline(user_query: str, llm_config: LLMConfig | None = None):
     """Optimized pipeline with secure file operations"""
     sys_msg = (
         "You are a helpful assistant tasked with performing analysis of the product "
@@ -294,9 +295,9 @@ def execute_graph_pipeline(user_query: str):
 
     graph = StateGraph(ThemesState)
     graph.add_node("Review_Extractor", query_vector_db_tool)
-    graph.add_node("Cluster_Assessor", assess_clusters_tool)
-    graph.add_node("Cluster_Summarizer", summarize_clusters_tool)
-    graph.add_node("Theme_Extractor", extract_themes_tool)
+    graph.add_node("Cluster_Assessor", lambda state: assess_clusters_tool(state, llm_config=llm_config))
+    graph.add_node("Cluster_Summarizer", lambda state: summarize_clusters_tool(state, llm_config=llm_config))
+    graph.add_node("Theme_Extractor", lambda state: extract_themes_tool(state, llm_config=llm_config))
 
     graph.add_edge(START, "Review_Extractor")
     graph.add_edge("Review_Extractor", "Cluster_Assessor")

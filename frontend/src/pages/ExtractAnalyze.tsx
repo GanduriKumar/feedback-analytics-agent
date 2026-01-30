@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Play, Settings } from 'lucide-react';
 import { UserTypeSelector } from '../components/analyze/UserTypeSelector';
 import { SearchInput } from '../components/analyze/SearchInput';
@@ -7,13 +7,41 @@ import { LLMConfig } from '../components/analyze/LLMConfig';
 import { ProgressTracker } from '../components/analyze/ProgressTracker';
 import { useAppStore } from '../store/useAppStore';
 import { usePipeline } from '../hooks/usePipeline';
+import { healthCheck } from '../services/api';
 
 export function ExtractAnalyze() {
   const { userType, searchQueries, selectedSources, isRunning, lastRun } = useAppStore();
   const { runPipeline, error } = usePipeline();
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [backendStatus, setBackendStatus] = useState<'checking' | 'starting' | 'up'>('checking');
+  const [backendMessage, setBackendMessage] = useState('Checking backend status...');
 
-  const canRun = userType && searchQueries.length > 0 && selectedSources.length > 0 && !isRunning;
+  useEffect(() => {
+    let isActive = true;
+    let timeoutId: number | undefined;
+
+    const checkBackend = async () => {
+      try {
+        const health = await healthCheck();
+        if (!isActive) return;
+        setBackendStatus('up');
+        setBackendMessage(`Backend online (v${health.version})`);
+      } catch (err) {
+        if (!isActive) return;
+        setBackendStatus('starting');
+        setBackendMessage('Backend starting up...');
+        timeoutId = window.setTimeout(checkBackend, 3000);
+      }
+    };
+
+    checkBackend();
+
+    return () => {
+      isActive = false;
+      if (timeoutId) window.clearTimeout(timeoutId);
+    };
+  }, []);
+  const canRun = userType && searchQueries.length > 0 && selectedSources.length > 0 && !isRunning && backendStatus === 'up';
 
   return (
     <div className="min-h-screen bg-google-gray-50">
@@ -57,6 +85,17 @@ export function ExtractAnalyze() {
               <Play className="w-5 h-5" />
               {isRunning ? 'Running...' : 'Run Analysis Pipeline'}
             </button>
+            <div className="flex items-center gap-2 text-sm">
+              <span
+                className={`h-2.5 w-2.5 rounded-full ${
+                  backendStatus === 'up' ? 'bg-google-green-600' : 'bg-google-yellow-600'
+                }`}
+                aria-hidden
+              />
+              <span className={backendStatus === 'up' ? 'text-google-green-700' : 'text-google-gray-600'}>
+                {backendMessage}
+              </span>
+            </div>
             {error && (
               <p className="text-google-red-600 text-sm">{error}</p>
             )}

@@ -1,4 +1,7 @@
-import dspy, time, csv, pandas as pd
+import pandas as pd
+from typing import Optional
+from app.models.schemas import LLMConfig
+from app.tools.custom_llm import CustomLLMModel
 class ReviewSummarizer:
     """
     ReviewSummarizer: A utility class for summarizing customer reviews and review clusters.
@@ -28,20 +31,22 @@ class ReviewSummarizer:
             >>> summaries = summarizer.summarize_clusters(clusters)
     Notes
     -----
-    - Uses DSPy with Ollama's Mistral model for natural language processing
-    - Requires a local Ollama server running on http://localhost:11434
+    - Uses the configured LLM provider for summarization
     - Combines multiple reviews within a cluster before summarization
     """
-    def __init__(self):
-        self.lm = dspy.LM('ollama_chat/mistral:latest', api_base='http://localhost:11434', api_key='')
-        self.summarizer = dspy.ChainOfThought('review -> summary')
+    def __init__(self, llm_config: Optional[LLMConfig] = None):
+        self.chat = CustomLLMModel(llm_config).getchatinstance()
     
 
     def summarize_review(self, review: str) -> str:
-    # Use dspy.context() instead of dspy.configure() in async contexts
-        with dspy.context(lm=self.lm):
-            summary = self.summarizer(review=review)
-            return summary.summary
+        prompt = (
+            "Summarize the following customer review in 1-2 concise sentences. "
+            "Focus on the key issue or praise.\n\n"
+            f"Review: {review}"
+        )
+        response = self.chat.invoke(prompt)
+        content = getattr(response, "content", None)
+        return (content or str(response)).strip()
 
     def summarize_clusters(self, clusters:dict)->list:
         df_clusters = pd.DataFrame(clusters)
