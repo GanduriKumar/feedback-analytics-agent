@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Feedback Analysis Report</title>
+  <style>
+    :root {
+      --gray-50: #f8f9fa;
+      --gray-100: #f1f3f4;
+      --gray-200: #e8eaed;
+      --gray-700: #5f6368;
+      --gray-900: #202124;
+      --blue-500: #1a73e8;
+      --red-500: #d93025;
+      --green-500: #1e8e3e;
+    }
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+      margin: 0;
+      background: var(--gray-50);
+      color: var(--gray-900);
+      padding: 24px;
+    }
+    .container {
+      max-width: 1024px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      border: 1px solid var(--gray-200);
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+    }
+    h1 { font-size: 22px; margin: 0 0 12px; }
+    h2 { font-size: 16px; margin: 16px 0 8px; }
+    p { margin: 4px 0; color: var(--gray-700); }
+    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-bottom: 12px; }
+    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
+    .card { background: var(--gray-50); border: 1px solid var(--gray-200); padding: 10px 12px; border-radius: 8px; }
+    .card strong { display: block; color: var(--gray-900); }
+    .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .table th, .table td { border: 1px solid var(--gray-200); padding: 8px; font-size: 12px; text-align: left; vertical-align: top; }
+    .table th { background: var(--gray-100); font-weight: 600; }
+    .chart { margin-top: 8px; }
+    .bar-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; margin-bottom: 6px; }
+    .bar-label { font-size: 12px; color: var(--gray-900); }
+    .bar-track { background: var(--gray-100); border-radius: 999px; overflow: hidden; height: 10px; }
+    .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1a73e8, #34a853); }
+    .bar-value { font-size: 12px; color: var(--gray-700); text-align: right; min-width: 60px; }
+    ul { padding-left: 18px; color: var(--gray-700); }
+    .note { font-size: 12px; color: var(--gray-700); margin-top: 6px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Feedback Analysis Report</h1>
+    <div class="meta">
+      <p><strong>Generated:</strong> 1/30/2026, 5:59:23 PM</p>
+      <p><strong>User Type:</strong> product-manager</p>
+      <p><strong>Data Sources:</strong> reddit</p>
+      <p><strong>Search Queries:</strong> Pixel 8 wifi connectivity</p>
+    </div>
+
+    <h2>Overview</h2>
+    <div class="card-grid">
+      <div class="card"><strong>Reviews Analyzed</strong><span>58</span></div><div class="card"><strong>Issues Identified</strong><span>55</span></div><div class="card"><strong>Themes Extracted</strong><span>55</span></div><div class="card"><strong>Products Referenced</strong><span>12</span></div><div class="card"><strong>Features Discussed</strong><span>3</span></div><div class="card"><strong>Problem Categories</strong><span>1</span></div>
+    </div>
+    <p class="note">Issue/Theme mentions are weighted by how many reviews support them. "Unique Products/Functionalities" count distinct names mentioned across reviews (context only; not charted).</p>
+
+    <h2>Sentiment Distribution</h2>
+    <div class="chart">
+      
+            <div class="bar-row">
+              <div class="bar-label">negative</div>
+              <div class="bar-track"><div class="bar-fill" style="width:94.8%;"></div></div>
+              <div class="bar-value">94.8%</div>
+            </div>
+    </div>
+
+    <h2>Issue Categories</h2>
+    <div class="chart">
+      
+            <div class="bar-row">
+              <div class="bar-label">complaint</div>
+              <div class="bar-track"><div class="bar-fill" style="width:94.8%;"></div></div>
+              <div class="bar-value">55 (94.8%)</div>
+            </div>
+    </div>
+
+    <h2>Themes Snapshot</h2>
+    <table class="table"><thead><tr><th>Theme</th><th>Sentiment</th><th>Representative Issue</th></tr></thead><tbody><tr><td>1. Connectivity</td><td>Negative</td><td>Repeatedly disconnects from home Sky Broadband WiFi/router while working fine on other networks; other devices remain stable, suggesting a Pixel 8 compatibility issue with that router.</td></tr><tr><td>2. Connectivity</td><td>Negative</td><td>Severe connectivity issues with frequent network drops requiring multiple daily restarts, eventually leading to &#039;No SIM/No Service&#039;; carrier support could not resolve it and the reviewer suspects a hardware/modem fault.</td></tr><tr><td>3. Hardware Reliability</td><td>Negative</td><td>Known hardware failure causing WiFi and Bluetooth radios to stop working, leading to concern about similar defects in future Pixel models.</td></tr><tr><td>4. Connectivity</td><td>Negative</td><td>Phone repeatedly reconnects to a WiFi network after the user selects &#039;Forget&#039;, possibly due to automatic restoration from backups, raising security concerns.</td></tr><tr><td>5. Connectivity</td><td>Negative</td><td>Pixel 9A repeatedly drops WiFi when connected to an older TP-Link Archer C5 router, suggesting a possible modem/router compatibility issue.</td></tr><tr><td>6. Connectivity</td><td>Negative</td><td>WiFi and Bluetooth repeatedly drop or completely stop working, sometimes cannot be turned on, and only a full power-off reset temporarily restores connectivity.</td></tr><tr><td>7. Connectivity</td><td>Negative</td><td>VoLTE works technically but lacks the required New Zealand 2degrees carrier configuration, causing calls to fall back to 3G unless rooted; with 3G shutting down the reviewer may need to replace the phone.</td></tr><tr><td>8. Connectivity</td><td>Negative</td><td>Android Auto Bluetooth connection issues: only phone-call audio works and other data/audio does not, occurring on Toyota RAV4 and C-HR while other phones work fine, suggesting a Pixel-specific problem.</td></tr><tr><td>9. Connectivity</td><td>Negative</td><td>Phone connects to WiFi but shows &#039;Connected, no internet access&#039; while other devices work; network reset and restarts did not resolve.</td></tr><tr><td>10. Connectivity</td><td>Negative</td><td>Recurring WiFi freezes on Pixel 8 and Pixel 10 causing apps (e.g., InstagramX) to stop loading for 10–30 seconds and sometimes requiring a switch to mobile data; on Pixel 10 the problem worsens when using Bluetooth headphones, leading to broken app connectivity and occasional audio routing glitches until a restart.</td></tr><tr><td>11. Connectivity</td><td>Negative</td><td>Phone falsely reports a working condo WiFi network as having no internet (likely due to high latency) and repeatedly switches to cellular data; WiFi only works if cellular data is manually disabled, causing issues while overseas with throttled data.</td></tr><tr><td>12. Connectivity</td><td>Negative</td><td>Phone shows good cellular signal but mobile data does not work in certain locations (e.g., shopping malls) despite having available data; another Pixel on the same carrier gets fast internet, suggesting a possible device setting or configuration issue.</td></tr><tr><td>13. Update</td><td>Negative</td><td>After the Dec 2025/Jan OTA and Google Play System updates, Wi‑Fi became unstable—disconnecting, failing to scan networks, and repeatedly resetting the Wi‑Fi chip; suspected mainline/software update bug affecting multiple users.</td></tr><tr><td>14. Connectivity</td><td>Negative</td><td>WiFi calling does not work despite being enabled and configured; errors indicate mobile data is unavailable and emergency calling requires a mobile network, causing persistent notifications and failed calls while on WiFi.</td></tr><tr><td>15. Connectivity</td><td>Negative</td><td>Stopped connecting to WiFi about three weeks ago, especially when returning home after being away.</td></tr><tr><td>16. Connectivity</td><td>Negative</td><td>Phone connects to home shared WiFi but shows &#039;no internet&#039; while other devices work; connects normally to other WiFi networks, suggesting a compatibility issue with the home network or the phone&#039;s WiFi behavior.</td></tr><tr><td>17. Update</td><td>Negative</td><td>After an update, the camera won&#039;t open, Wi‑Fi won&#039;t connect, and the flashlight reports it&#039;s already in use; restarts and a hard reset did not resolve the problems.</td></tr><tr><td>18. Update</td><td>Negative</td><td>After a mid-December update, Bluetooth won&#039;t turn on and Wi‑Fi won&#039;t find networks despite resets and troubleshooting; frustrated with unhelpful Google support and considering switching to Samsung.</td></tr></tbody></table>
+
+    <h2>Recommendations</h2>
+    <ul><li><strong>1.</strong> Prioritize complaint (covers ~100% of weighted feedback).</li></ul>
+
+    <h2>Review Details & Actions</h2>
+    <table class="table"><thead><tr><th>Review / Issue</th><th>Sentiment</th><th>Theme</th><th>Recommended Action</th></tr></thead><tbody><tr><td>Repeatedly disconnects from home Sky Broadband WiFi/router while working fine on other networks; other devices remain stable, suggesting a Pixel 8 compatibility issue with that router.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (2 similar reviews) in the next sprint focusing on &quot;Repeatedly disconnects from home Sky Broadband WiFi/router while working fine on&quot;, and validate with representative users.</td></tr><tr><td>Severe connectivity issues with frequent network drops requiring multiple daily restarts, eventually leading to &#039;No SIM/No Service&#039;; carrier support could not resolve it and the reviewer suspects a hardware/modem fault.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (6 similar reviews) in the next sprint focusing on &quot;Severe connectivity issues with frequent network drops requiring multiple daily &quot;, and validate with representative users.</td></tr><tr><td>Known hardware failure causing WiFi and Bluetooth radios to stop working, leading to concern about similar defects in future Pixel models.</td><td>Negative</td><td>Hardware Reliability</td><td>Prioritize complaint (7 similar reviews) in the next sprint focusing on &quot;Known hardware failure causing WiFi and Bluetooth radios to stop working, leadin&quot;, and validate with representative users.</td></tr><tr><td>Phone repeatedly reconnects to a WiFi network after the user selects &#039;Forget&#039;, possibly due to automatic restoration from backups, raising security concerns.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (3 similar reviews) in the next sprint focusing on &quot;Phone repeatedly reconnects to a WiFi network after the user selects &#039;Forget&#039;, p&quot;, and validate with representative users.</td></tr><tr><td>Pixel 9A repeatedly drops WiFi when connected to an older TP-Link Archer C5 router, suggesting a possible modem/router compatibility issue.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (2 similar reviews) in the next sprint focusing on &quot;Pixel 9A repeatedly drops WiFi when connected to an older TP-Link Archer C5 rout&quot;, and validate with representative users.</td></tr><tr><td>WiFi and Bluetooth repeatedly drop or completely stop working, sometimes cannot be turned on, and only a full power-off reset temporarily restores connectivity.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (5 similar reviews) in the next sprint focusing on &quot;WiFi and Bluetooth repeatedly drop or completely stop working, sometimes cannot &quot;, and validate with representative users.</td></tr><tr><td>VoLTE works technically but lacks the required New Zealand 2degrees carrier configuration, causing calls to fall back to 3G unless rooted; with 3G shutting down the reviewer may need to replace the phone.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint in the next sprint focusing on &quot;VoLTE works technically but lacks the required New Zealand 2degrees carrier conf&quot;, and validate with representative users.</td></tr><tr><td>Android Auto Bluetooth connection issues: only phone-call audio works and other data/audio does not, occurring on Toyota RAV4 and C-HR while other phones work fine, suggesting a Pixel-specific problem.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint in the next sprint focusing on &quot;Android Auto Bluetooth connection issues: only phone-call audio works and other &quot;, and validate with representative users.</td></tr><tr><td>Phone connects to WiFi but shows &#039;Connected, no internet access&#039; while other devices work; network reset and restarts did not resolve.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (6 similar reviews) in the next sprint focusing on &quot;Phone connects to WiFi but shows &#039;Connected, no internet access&#039; while other dev&quot;, and validate with representative users.</td></tr><tr><td>Recurring WiFi freezes on Pixel 8 and Pixel 10 causing apps (e.g., InstagramX) to stop loading for 10–30 seconds and sometimes requiring a switch to mobile data; on Pixel 10 the problem worsens when using Bluetooth headphones, leading to broken app connectivity and occasional audio routing glitches until a restart.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (7 similar reviews) in the next sprint focusing on &quot;Recurring WiFi freezes on Pixel 8 and Pixel 10 causing apps (e.g., InstagramX) t&quot;, and validate with representative users.</td></tr><tr><td>Phone falsely reports a working condo WiFi network as having no internet (likely due to high latency) and repeatedly switches to cellular data; WiFi only works if cellular data is manually disabled, causing issues while overseas with throttled data.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (7 similar reviews) in the next sprint focusing on &quot;Phone falsely reports a working condo WiFi network as having no internet (likely&quot;, and validate with representative users.</td></tr><tr><td>Phone shows good cellular signal but mobile data does not work in certain locations (e.g., shopping malls) despite having available data; another Pixel on the same carrier gets fast internet, suggesting a possible device setting or configuration issue.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint in the next sprint focusing on &quot;Phone shows good cellular signal but mobile data does not work in certain locati&quot;, and validate with representative users.</td></tr><tr><td>After the Dec 2025/Jan OTA and Google Play System updates, Wi‑Fi became unstable—disconnecting, failing to scan networks, and repeatedly resetting the Wi‑Fi chip; suspected mainline/software update bug affecting multiple users.</td><td>Negative</td><td>Update</td><td>Prioritize complaint in the next sprint focusing on &quot;After the Dec 2025/Jan OTA and Google Play System updates, Wi‑Fi became unstable&quot;, and validate with representative users.</td></tr><tr><td>WiFi calling does not work despite being enabled and configured; errors indicate mobile data is unavailable and emergency calling requires a mobile network, causing persistent notifications and failed calls while on WiFi.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint in the next sprint focusing on &quot;WiFi calling does not work despite being enabled and configured; errors indicate&quot;, and validate with representative users.</td></tr><tr><td>Stopped connecting to WiFi about three weeks ago, especially when returning home after being away.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint in the next sprint focusing on &quot;Stopped connecting to WiFi about three weeks ago, especially when returning home&quot;, and validate with representative users.</td></tr><tr><td>Phone connects to home shared WiFi but shows &#039;no internet&#039; while other devices work; connects normally to other WiFi networks, suggesting a compatibility issue with the home network or the phone&#039;s WiFi behavior.</td><td>Negative</td><td>Connectivity</td><td>Prioritize complaint (2 similar reviews) in the next sprint focusing on &quot;Phone connects to home shared WiFi but shows &#039;no internet&#039; while other devices w&quot;, and validate with representative users.</td></tr><tr><td>After an update, the camera won&#039;t open, Wi‑Fi won&#039;t connect, and the flashlight reports it&#039;s already in use; restarts and a hard reset did not resolve the problems.</td><td>Negative</td><td>Update</td><td>Prioritize complaint in the next sprint focusing on &quot;After an update, the camera won&#039;t open, Wi‑Fi won&#039;t connect, and the flashlight &quot;, and validate with representative users.</td></tr><tr><td>After a mid-December update, Bluetooth won&#039;t turn on and Wi‑Fi won&#039;t find networks despite resets and troubleshooting; frustrated with unhelpful Google support and considering switching to Samsung.</td><td>Negative</td><td>Update</td><td>Prioritize complaint in the next sprint focusing on &quot;After a mid-December update, Bluetooth won&#039;t turn on and Wi‑Fi won&#039;t find networ&quot;, and validate with representative users.</td></tr></tbody></table>
+  </div>
+</body>
+</html>

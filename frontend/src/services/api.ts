@@ -12,7 +12,8 @@ import type {
 } from '../types';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL || '/api';
-const apiKey = import.meta.env.VITE_API_KEY || 'dev-api-key-12345';
+// Internal API key for frontend-backend communication (not a secret)
+const apiKey = 'feedback-analytics-internal-key-2026';
 
 export const api = axios.create({
   baseURL,

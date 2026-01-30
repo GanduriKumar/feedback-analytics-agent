@@ -180,6 +180,8 @@ def query_vector_db_tool(state:InputState)->InputState:
       InputState(query="Pixel battery", extracted_reviews=["Review 1", "Review 2"])
     """
     reviews = query_vector_db(state.query)
+    print(f"[DEBUG] Extracted {len(reviews)} reviews from vector DB")
+    print(f"[DEBUG] Sample reviews: {reviews[:2] if reviews else 'EMPTY'}")
     return InputState(query=state.query, extracted_reviews=reviews)
 
 # Node 2: Group extracted reviews into clusters based on similarity
@@ -212,7 +214,10 @@ def assess_clusters_tool(state:InputState, llm_config: LLMConfig | None = None)-
       InputState(extracted_reviews=["Review 1", "Review 2"]) -> assess_clusters_tool() ->
       ClusterState(clusters={0: ["Review 1"], 1: ["Review 2"]})
     """
+    print(f"[DEBUG] Clustering {len(state.extracted_reviews)} reviews")
     clusters = assess_clusters(state.extracted_reviews, llm_config=llm_config)
+    print(f"[DEBUG] Created {len(clusters)} clusters")
+    print(f"[DEBUG] Cluster sizes: {[len(v) for v in clusters.values()]}")
     return ClusterState(query=state.query, extracted_reviews=state.extracted_reviews, clusters=clusters)
     
 # Node 3: Generate concise summaries for each cluster of reviews
@@ -281,7 +286,11 @@ def extract_themes_tool(state:SummaryState, llm_config: LLMConfig | None = None)
       SummaryState(cluster_summaries=["Battery issues", "Great camera"]) -> extract_themes_tool() ->
       ThemesState(themes=[{"theme": "Battery", "sentiment": "negative"}, {"theme": "Camera", "sentiment": "positive"}])
     """
+    print(f"[DEBUG] Extracting themes from {len(state.cluster_summaries)} cluster summaries")
+    print(f"[DEBUG] Summaries sample: {state.cluster_summaries[:2] if state.cluster_summaries else 'EMPTY'}")
     themes= extract_themes(state.cluster_summaries, llm_config=llm_config)
+    print(f"[DEBUG] Extracted {len(themes)} themes")
+    print(f"[DEBUG] Themes sample: {themes[:2] if themes else 'EMPTY'}")
     return ThemesState(query=state.query, extracted_reviews=state.extracted_reviews, clusters=state.clusters, cluster_summaries=state.cluster_summaries, themes=themes)
 
 

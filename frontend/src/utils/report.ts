@@ -89,6 +89,8 @@ export function deriveReport(args: {
     return { ...t, review_count: reviewCount };
   });
 
+  console.log('Deriving report from themes:', themesWithCounts);
+  
   for (const t of themesWithCounts) {
     const weight = t.review_count && t.review_count > 0 ? t.review_count : 1;
 
@@ -104,6 +106,9 @@ export function deriveReport(args: {
     const s = normalizeText(t.sentiment) || 'unknown';
     sentiment_distribution[s] = (sentiment_distribution[s] || 0) + weight;
   }
+
+  console.log('Issue categories:', issue_categories);
+  console.log('Sentiment distribution:', sentiment_distribution);
 
   const totalThemeMentions = themesWithCounts.reduce((sum, t) => sum + (t.review_count || 1), 0);
   const totalIssueMentions = Object.values(issue_categories).reduce((sum, n) => sum + n, 0);

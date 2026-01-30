@@ -6,12 +6,12 @@ interface Props {
 }
 
 export function OverviewCards({ report }: Props) {
-  const totalIssueMentions = Object.values(report.issue_categories).reduce((sum, n) => sum + n, 0);
-  const totalThemeMentions = report.themes.reduce((sum, t) => sum + (t.review_count || 1), 0);
+  const uniqueIssueCategories = Object.keys(report.issue_categories).length;
+  const uniqueThemes = report.themes.length;
 
   const cards = [
     {
-      label: 'Total Reviews',
+      label: 'Reviews Analyzed',
       value: report.total_reviews,
       icon: FileText,
       color: 'google-blue',
@@ -25,18 +25,18 @@ export function OverviewCards({ report }: Props) {
       helper: 'How many sources were used (e.g., Reddit)',
     },
     {
-      label: 'Issue Mentions',
-      value: totalIssueMentions,
+      label: 'Issue Categories',
+      value: uniqueIssueCategories,
       icon: Tag,
       color: 'google-yellow',
-      helper: 'Count of issue-category assignments across reviews',
+      helper: 'Unique issue classification types',
     },
     {
-      label: 'Theme Mentions',
-      value: totalThemeMentions,
+      label: 'Themes Extracted',
+      value: uniqueThemes,
       icon: TrendingUp,
       color: 'google-red',
-      helper: 'Review-weighted themes (reflects #reviews, not clusters)',
+      helper: 'Unique themes identified across reviews',
     },
   ];
 

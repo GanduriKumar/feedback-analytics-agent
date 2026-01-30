@@ -92,12 +92,12 @@ export function generateHTMLReport(report: AnalysisReport) {
   });
 
   const overviewRows = [
-    ['Total Reviews', `${report.total_reviews}`],
-    ['Issue Mentions (weighted)', `${Object.values(report.issue_categories).reduce((s, n) => s + n, 0)}`],
-    ['Theme Mentions (weighted)', `${report.themes.reduce((s, t) => s + (t.review_count || 1), 0)}`],
-    ['Unique Products Mentioned', `${report.text_analytics.unique_products}`],
-    ['Unique Functionalities Mentioned', `${report.text_analytics.unique_functionalities}`],
-    ['Unique Issue Categories', `${report.text_analytics.unique_issue_categories}`],
+    ['Reviews Analyzed', `${report.total_reviews}`],
+    ['Issue Categories', `${Object.keys(report.issue_categories).length}`],
+    ['Themes Extracted', `${report.themes.length}`],
+    ['Products Referenced', `${report.text_analytics.unique_products}`],
+    ['Features Discussed', `${report.text_analytics.unique_functionalities}`],
+    ['Problem Categories', `${report.text_analytics.unique_issue_categories}`],
   ];
 
   const recommendationsHtml = (report.recommendations || [])

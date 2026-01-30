@@ -61,7 +61,8 @@ logger = logging.getLogger(__name__)
 dotenv.load_dotenv()
 
 # Security configuration
-API_KEY = os.getenv("API_KEY") or "default_dev_key_change_in_production"
+# Internal API key for frontend-backend communication (not a secret)
+API_KEY = "feedback-analytics-internal-key-2026"
 logger.info(f"API initialized with key: {API_KEY[:8]}...")
 
 api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
@@ -136,8 +137,13 @@ async def verify_api_key(
     
     key = api_key_header or api_key_query
     
+    # Debug logging
+    logger.info(f"Received key: '{key}' (len={len(key) if key else 0})")
+    logger.info(f"Expected key: '{API_KEY}' (len={len(API_KEY)})")
+    logger.info(f"Keys match: {key == API_KEY if key else False}")
+    
     if not key or not secrets.compare_digest(key, API_KEY):
-        logger.warning(f"Unauthorized access attempt")
+        logger.warning(f"Unauthorized access attempt - Key mismatch")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or missing API key"
@@ -413,10 +419,16 @@ async def collect_reviews(
     dependencies=[Depends(verify_api_key), Depends(check_rate_limit)]
 )
 async def cluster_reviews(payload: ClusterRequest):
-    """Cluster provided reviews by semantic similarity."""
+    """Cluster provided reviews by semantic similarity and store in ChromaDB."""
     try:
         logger.info(f"Clustering {len(payload.reviews)} reviews")
         start_time = time.time()
+        
+        # Store reviews in ChromaDB for later analysis
+        from app.core.vector_db import store_reviews_in_db
+        logger.info("Storing reviews in ChromaDB...")
+        await asyncio.to_thread(store_reviews_in_db, payload.reviews)
+        logger.info(f"Stored {len(payload.reviews)} reviews in ChromaDB")
         
         clusters = await asyncio.to_thread(assess_clusters, payload.reviews, payload.llm_config)
         

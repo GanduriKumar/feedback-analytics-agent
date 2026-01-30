@@ -176,7 +176,8 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
         
         # Initialize the custom LLM model for embeddings
         model = CustomLLMModel()
-        collection_name = model.get_embedding_collection_name(collection_name)
+        # Use ChromaDB's default embedding (not the LLM-specific one)
+        # to match what we used when storing reviews
 
         # Create a persistent Chroma client with validated path
         client = chromadb.PersistentClient(path=str(db_path))
@@ -196,13 +197,10 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
         if existing_count == 0:
             return []
         
-        # Create embedding model for converting text to vectors
-        embeddings_model = model.create_embedding()
-        query_embedding = embeddings_model.embed_query(sanitized_query)
-        
-        # Perform similarity search
+        # ChromaDB handles embedding generation automatically
+        # Query by text directly (ChromaDB will embed it internally)
         results = reviews_collection.query(
-            query_embeddings=[query_embedding],
+            query_texts=[sanitized_query],
             n_results=validated_n_results
         )
         
@@ -237,3 +235,51 @@ def query_vector_db(query_text: str, n_results: int = 50, output_file: Optional[
     except Exception as e:
         raise RuntimeError(f"Unexpected error during query: {str(e)}")
 
+
+def store_reviews_in_db(reviews: List[str]) -> None:
+    """
+    Store reviews in ChromaDB vector database.
+    ChromaDB will auto-generate embeddings using its default embedding model.
+    
+    Args:
+        reviews: List of review texts to store
+        
+    Raises:
+        ValueError: If reviews list is empty or invalid
+        RuntimeError: If database operations fail
+    """
+    if not reviews or not isinstance(reviews, list):
+        raise ValueError("Reviews must be a non-empty list")
+    
+    # Filter out empty/invalid reviews
+    valid_reviews = [r.strip() for r in reviews if r and isinstance(r, str) and r.strip()]
+    if not valid_reviews:
+        raise ValueError("No valid reviews to store")
+    
+    try:
+        dotenv.load_dotenv()
+        collection_name = os.getenv("REVIEW_COLLECTION_NAME", "reviews")
+        
+        db_path = get_safe_db_path()
+        chroma_client = chromadb.PersistentClient(path=str(db_path))
+        
+        # Get or create collection - ChromaDB will auto-generate embeddings
+        reviews_collection = chroma_client.get_or_create_collection(
+            name=collection_name,
+            metadata={"hnsw:space": "cosine"}
+        )
+        
+        # Create unique IDs for each review
+        import uuid
+        ids = [str(uuid.uuid4()) for _ in valid_reviews]
+        
+        # Add to collection - ChromaDB will handle embedding generation
+        reviews_collection.add(
+            documents=valid_reviews,
+            ids=ids
+        )
+        
+        print(f"[DEBUG] Stored {len(valid_reviews)} reviews in ChromaDB")
+        
+    except Exception as e:
+        raise RuntimeError(f"Failed to store reviews in database: {str(e)}")
