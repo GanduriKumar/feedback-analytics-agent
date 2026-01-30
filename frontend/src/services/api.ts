@@ -122,3 +122,8 @@ export async function searchReviews(body: SearchRequest) {
   const { data } = await api.post<SearchResponse>('/search', body);
   return data;
 }
+
+export async function purgeStorage() {
+  const { data } = await api.post<{ status: string; message: string }>('/tools/purge');
+  return data;
+}

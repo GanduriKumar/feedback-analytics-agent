@@ -78,7 +78,20 @@ export function deriveReport(args: {
   const issue_categories: Record<string, number> = {};
   const sentiment_distribution: Record<string, number> = {};
 
-  for (const t of args.themes) {
+  const clusterSizes: number[] = args.clusters?.clusters
+    ? Object.entries(args.clusters.clusters)
+        .sort(([a], [b]) => Number(a) - Number(b))
+        .map(([, reviews]) => (reviews || []).filter(Boolean).length)
+    : [];
+
+  const themesWithCounts: ThemeData[] = args.themes.map((t, idx) => {
+    const reviewCount = Math.max(1, clusterSizes[idx] ?? 1);
+    return { ...t, review_count: reviewCount };
+  });
+
+  for (const t of themesWithCounts) {
+    const weight = t.review_count && t.review_count > 0 ? t.review_count : 1;
+
     const p = normalizeText(t.product);
     if (p) products.add(p);
 
@@ -86,19 +99,24 @@ export function deriveReport(args: {
     if (func) functionalities.add(func);
 
     const cat = normalizeText(t.classification) || 'Unclassified';
-    issue_categories[cat] = (issue_categories[cat] || 0) + 1;
+    issue_categories[cat] = (issue_categories[cat] || 0) + weight;
 
     const s = normalizeText(t.sentiment) || 'unknown';
-    sentiment_distribution[s] = (sentiment_distribution[s] || 0) + 1;
+    sentiment_distribution[s] = (sentiment_distribution[s] || 0) + weight;
   }
+
+  const totalThemeMentions = themesWithCounts.reduce((sum, t) => sum + (t.review_count || 1), 0);
+  const totalIssueMentions = Object.values(issue_categories).reduce((sum, n) => sum + n, 0);
+  const totalSentimentMentions = Object.values(sentiment_distribution).reduce((sum, n) => sum + n, 0);
 
   const avg_review_length = args.totalReviews > 0 ? 0 : 0; // filled by pipeline if we keep raw strings; placeholder
 
   const recommendations: string[] = [];
+  const totalWeight = themesWithCounts.reduce((sum, t) => sum + (t.review_count || 1), 0) || 1;
   const sortedCats = Object.entries(issue_categories).sort((a, b) => b[1] - a[1]).slice(0, 5);
   for (const [cat, count] of sortedCats) {
-    const pct = args.themes.length ? Math.round((count / args.themes.length) * 100) : 0;
-    recommendations.push(`Prioritize ${cat} (${pct}% of identified themes).`);
+    const pct = Math.round((count / totalWeight) * 100);
+    recommendations.push(`Prioritize ${cat} (covers ~${pct}% of weighted feedback).`);
   }
   if (!recommendations.length) {
     recommendations.push('Run an analysis with more data to generate actionable recommendations.');
@@ -113,7 +131,7 @@ export function deriveReport(args: {
     llm_config: args.llmConfig,
 
     total_reviews: args.totalReviews,
-    total_themes: args.themes.length,
+    total_themes: Math.min(args.totalReviews, totalThemeMentions),
 
     products: Array.from(products).sort(),
     functionalities: Array.from(functionalities).sort(),
@@ -121,15 +139,15 @@ export function deriveReport(args: {
     issue_categories,
     sentiment_distribution,
 
-    themes: args.themes,
+    themes: themesWithCounts,
     clusters: args.clusters ?? null,
 
     recommendations,
     text_analytics: {
       avg_review_length,
-      unique_products: products.size,
-      unique_functionalities: functionalities.size,
-      unique_issue_categories: Object.keys(issue_categories).length,
+      unique_products: Math.min(products.size, Math.max(args.totalReviews, 1)),
+      unique_functionalities: Math.min(functionalities.size, Math.max(args.totalReviews, 1)),
+      unique_issue_categories: Math.min(Object.keys(issue_categories).length, Math.max(args.totalReviews, 1)),
     },
   };
 }

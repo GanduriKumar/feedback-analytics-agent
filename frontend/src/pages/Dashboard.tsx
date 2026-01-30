@@ -5,10 +5,11 @@ import { OverviewCards } from '../components/charts/OverviewCards';
 import { SentimentChart } from '../components/charts/SentimentChart';
 import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart';
 import { ThemesChart } from '../components/charts/ThemesChart';
-import { generatePDFReport, generateIssuesCSVReport } from '../utils/export';
+import { generateHTMLReport, generateIssuesCSVReport } from '../utils/export';
+import { purgeStorage } from '../services/api';
 
 export function Dashboard() {
-  const { lastRun, analysisHistory, selectedReportId, setSelectedReport } = useAppStore();
+  const { lastRun, analysisHistory, selectedReportId, setSelectedReport, purgeReports, setProgress } = useAppStore();
 
   const selectedReport = selectedReportId
     ? analysisHistory.find((r) => r.id === selectedReportId) || lastRun
@@ -94,11 +95,11 @@ export function Dashboard() {
         {/* Quick Actions */}
         <div className="flex flex-wrap gap-3">
           <button
-            onClick={() => generatePDFReport(selectedReport)}
+            onClick={() => generateHTMLReport(selectedReport)}
             className="flex items-center gap-2 px-6 py-3 bg-google-red-500 text-white rounded-lg hover:bg-google-red-600"
           >
             <FileText className="w-5 h-5" />
-            Download PDF
+            Download HTML
           </button>
           <button
             onClick={() => generateIssuesCSVReport(selectedReport)}
@@ -113,6 +114,25 @@ export function Dashboard() {
           >
             Run New Analysis
           </Link>
+          <button
+            onClick={async () => {
+              const confirmed = window.confirm('Purge vector store and clear local report history? This cannot be undone.');
+              if (!confirmed) return;
+              setProgress({ stage: 'idle', message: 'Purging storage...', progress: 0 });
+              try {
+                await purgeStorage();
+                purgeReports();
+                setProgress({ stage: 'idle', message: 'Storage purged', progress: 0 });
+              } catch (err: any) {
+                console.error(err);
+                setProgress({ stage: 'error', message: err?.message || 'Purge failed', progress: 0 });
+                alert('Purge failed. Check logs.');
+              }
+            }}
+            className="flex items-center gap-2 px-6 py-3 bg-google-gray-200 text-google-gray-800 rounded-lg hover:bg-google-gray-300"
+          >
+            Purge Database
+          </button>
         </div>
 
         {/* Analysis History */}

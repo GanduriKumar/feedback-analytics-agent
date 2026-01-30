@@ -7,7 +7,7 @@ import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart'
 import { ThemesChart } from '../components/charts/ThemesChart';
 import { UserTypeThemesChart } from '../components/charts/UserTypeThemesChart';
 import { ClusterTable } from '../components/reports/ClusterTable';
-import { generatePDFReport, generateCSVReport, generateIssuesCSVReport } from '../utils/export';
+import { generateHTMLReport, generateIssuesCSVReport } from '../utils/export';
 
 export function Reports() {
   const { lastRun } = useAppStore();
@@ -44,18 +44,11 @@ export function Reports() {
           </div>
           <div className="flex gap-3">
             <button
-              onClick={() => generatePDFReport(report)}
+              onClick={() => generateHTMLReport(report)}
               className="flex items-center gap-2 px-6 py-3 bg-google-red-500 text-white rounded-lg hover:bg-google-red-600"
             >
               <FileText className="w-5 h-5" />
-              Download PDF
-            </button>
-            <button
-              onClick={() => generateCSVReport(report)}
-              className="flex items-center gap-2 px-6 py-3 bg-google-green-500 text-white rounded-lg hover:bg-google-green-600"
-            >
-              <Table className="w-5 h-5" />
-              Download Summary CSV
+              Download HTML
             </button>
             <button
               onClick={() => generateIssuesCSVReport(report)}

@@ -29,6 +29,7 @@ from functools import lru_cache
 from collections import defaultdict
 from threading import Lock
 import pandas as pd
+import shutil
 
 # Import models
 from app.models.schemas import (
@@ -41,6 +42,9 @@ from app.core.analyzer import execute_graph_pipeline
 from app.core.vector_db import query_vector_db
 from app.tools.custom_tools import fetch_reddit_reviews, clean_reviews, assess_clusters
 from app.utilities.theme_issue_classifier import ThemeClassifier
+
+# Storage paths
+CHROMA_DB_PATH = os.getenv('CHROMA_DB_PATH', './chroma_db')
 
 # Configure logging
 logging.basicConfig(
@@ -176,6 +180,13 @@ def get_safe_output_path(filename: str) -> Path:
         raise ValueError("Output path is outside workspace directory")
     
     return output_path
+
+
+def purge_chroma_storage(path: str):
+    target = Path(path).resolve()
+    if target.exists() and target.is_dir():
+        shutil.rmtree(target)
+    target.mkdir(parents=True, exist_ok=True)
 
 
 def _parse_csv_query_param(value: Optional[str]) -> List[str]:
@@ -427,6 +438,24 @@ async def cluster_reviews(payload: ClusterRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Clustering failed: {str(e)}"
+        )
+
+
+@app.post(
+    "/api/tools/purge",
+    tags=["tools"],
+    dependencies=[Depends(verify_api_key), Depends(check_rate_limit)]
+)
+async def purge_storage():
+    """Purge vector storage and related cached artifacts."""
+    try:
+        purge_chroma_storage(CHROMA_DB_PATH)
+        return {"status": "ok", "message": "Chroma storage purged"}
+    except Exception as e:
+        logger.error(f"Purge failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Purge failed: {str(e)}"
         )
 
 

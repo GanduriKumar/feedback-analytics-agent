@@ -47,6 +47,8 @@ interface AppState {
   addToHistory: (r: AnalysisReport) => void;
   setSelectedReport: (id: string | null) => void;
 
+  purgeReports: () => void;
+
   clearHistory: () => void;
   deleteFromHistory: (id: string) => void;
 
@@ -119,6 +121,13 @@ export const useAppStore = create<AppState>()(
           analysisHistory: [r, ...state.analysisHistory].slice(0, MAX_HISTORY),
         })),
       setSelectedReport: (id) => set({ selectedReportId: id }),
+
+      purgeReports: () =>
+        set({
+          lastRun: null,
+          analysisHistory: [],
+          selectedReportId: null,
+        }),
 
       clearHistory: () => set({ analysisHistory: [] }),
       deleteFromHistory: (id) =>

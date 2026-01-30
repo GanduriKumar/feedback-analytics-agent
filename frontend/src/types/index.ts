@@ -86,6 +86,7 @@ export interface ThemeData {
   theme?: string | null;
   classification?: string | null;
   issue_description?: string | null;
+  review_count?: number;
 }
 
 export interface AnalyzeResponse {
