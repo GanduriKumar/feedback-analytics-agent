@@ -47,12 +47,6 @@ export function ExtractAnalyze() {
   return (
     <div className="min-h-screen bg-google-gray-50">
       <div className="max-w-7xl mx-auto px-8 py-8 space-y-8">
-        {/* Page Header */}
-        <div>
-          <h1 className="text-3xl font-bold text-google-gray-900">Extract & Analyze Feedback</h1>
-          <p className="text-google-gray-600 mt-2">Configure your analysis pipeline and extract insights from user reviews</p>
-        </div>
-
         {/* Configuration Section */}
         <section className="space-y-6">
           <UserTypeSelector />

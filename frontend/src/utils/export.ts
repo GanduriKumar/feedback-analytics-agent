@@ -95,8 +95,8 @@ export function generateHTMLReport(report: AnalysisReport) {
     ['Reviews Analyzed', `${report.total_reviews}`],
     ['Issue Categories', `${Object.keys(report.issue_categories).length}`],
     ['Themes Extracted', `${report.themes.length}`],
-    ['Products Referenced', `${report.text_analytics.unique_products}`],
-    ['Features Discussed', `${report.text_analytics.unique_functionalities}`],
+    ['Product versions referred', `${report.text_analytics.unique_products}`],
+    ['Functionality discussed', `${report.text_analytics.unique_functionalities}`],
     ['Problem Categories', `${report.text_analytics.unique_issue_categories}`],
   ];
 
@@ -140,21 +140,87 @@ export function generateHTMLReport(report: AnalysisReport) {
     h1 { font-size: 22px; margin: 0 0 12px; }
     h2 { font-size: 16px; margin: 16px 0 8px; }
     p { margin: 4px 0; color: var(--gray-700); }
-    .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 8px; margin-bottom: 12px; }
-    .card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; }
-    .card { background: var(--gray-50); border: 1px solid var(--gray-200); padding: 10px 12px; border-radius: 8px; }
-    .card strong { display: block; color: var(--gray-900); }
+    .meta { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); 
+      gap: 12px; 
+      margin-bottom: 20px; 
+      padding: 12px;
+      background: var(--gray-100);
+      border-radius: 8px;
+    }
+    .meta p { margin: 4px 0; font-size: 13px; }
+    .meta strong { color: var(--gray-900); }
+    .card-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); 
+      gap: 12px; 
+      margin-bottom: 16px;
+    }
+    .card { 
+      background: var(--gray-50); 
+      border: 2px solid var(--gray-200); 
+      padding: 14px; 
+      border-radius: 8px;
+      text-align: center;
+    }
+    .card strong { 
+      display: block; 
+      color: var(--gray-900); 
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+    .card span { 
+      display: block;
+      color: var(--gray-700); 
+      font-size: 12px;
+      font-weight: 500;
+    }
     .table { width: 100%; border-collapse: collapse; margin-top: 8px; }
     .table th, .table td { border: 1px solid var(--gray-200); padding: 8px; font-size: 12px; text-align: left; vertical-align: top; }
     .table th { background: var(--gray-100); font-weight: 600; }
-    .chart { margin-top: 8px; }
-    .bar-row { display: grid; grid-template-columns: 1fr auto auto; gap: 8px; align-items: center; margin-bottom: 6px; }
-    .bar-label { font-size: 12px; color: var(--gray-900); }
-    .bar-track { background: var(--gray-100); border-radius: 999px; overflow: hidden; height: 10px; }
-    .bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #1a73e8, #34a853); }
-    .bar-value { font-size: 12px; color: var(--gray-700); text-align: right; min-width: 60px; }
+    .chart { margin-top: 12px; }
+    .bar-row { 
+      display: grid; 
+      grid-template-columns: 120px 1fr auto; 
+      gap: 12px; 
+      align-items: center; 
+      margin-bottom: 8px; 
+    }
+    .bar-label { 
+      font-size: 13px; 
+      color: var(--gray-900); 
+      font-weight: 500;
+    }
+    .bar-track { 
+      background: var(--gray-200); 
+      border-radius: 4px; 
+      overflow: hidden; 
+      height: 20px; 
+    }
+    .bar-fill { 
+      height: 100%; 
+      border-radius: 4px;
+      background: linear-gradient(90deg, #1a73e8, #34a853);
+      transition: width 0.3s ease;
+    }
+    .bar-value { 
+      font-size: 13px; 
+      color: var(--gray-700); 
+      text-align: right; 
+      min-width: 70px;
+      font-weight: 500;
+    }
     ul { padding-left: 18px; color: var(--gray-700); }
-    .note { font-size: 12px; color: var(--gray-700); margin-top: 6px; }
+    .note { font-size: 12px; color: var(--gray-700); margin-top: 8px; padding: 8px; background: var(--gray-50); border-left: 3px solid var(--blue-500); border-radius: 4px; }
+    .color-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
   </style>
 </head>
 <body>
@@ -182,10 +248,12 @@ export function generateHTMLReport(report: AnalysisReport) {
       ${sentimentRows
         .map(([label, count, pct]) => {
           const pctNum = Number(pct.replace('%', '')) || 0;
+          const colors = { positive: '#1e8e3e', negative: '#d93025', neutral: '#9aa0a6', mixed: '#f9ab00' };
+          const color = colors[label.toLowerCase()] || '#1a73e8';
           return `
             <div class="bar-row">
-              <div class="bar-label">${escapeHtml(label)}</div>
-              <div class="bar-track"><div class="bar-fill" style="width:${pctNum}%;"></div></div>
+              <div class="bar-label"><span class="color-dot" style="background-color: ${color};"></span>${escapeHtml(label)}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pctNum}%; background: ${color};"></div></div>
               <div class="bar-value">${escapeHtml(pct)}</div>
             </div>`;
         })
@@ -195,12 +263,14 @@ export function generateHTMLReport(report: AnalysisReport) {
     <h2>Issue Categories</h2>
     <div class="chart">
       ${issueEntries
-        .map(([label, count]) => {
+        .map(([label, count], idx) => {
           const pctNum = issueDenominator ? Math.min(100, (count / issueDenominator) * 100) : 0;
+          const colors = ['#1a73e8', '#1e8e3e', '#f9ab00', '#d93025', '#9aa0a6'];
+          const color = colors[idx % colors.length];
           return `
             <div class="bar-row">
-              <div class="bar-label">${escapeHtml(label)}</div>
-              <div class="bar-track"><div class="bar-fill" style="width:${pctNum.toFixed(1)}%;"></div></div>
+              <div class="bar-label"><span class="color-dot" style="background-color: ${color};"></span>${escapeHtml(label)}</div>
+              <div class="bar-track"><div class="bar-fill" style="width:${pctNum.toFixed(1)}%; background: ${color};"></div></div>
               <div class="bar-value">${count} (${pctNum.toFixed(1)}%)</div>
             </div>`;
         })

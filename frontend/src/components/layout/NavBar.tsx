@@ -19,8 +19,8 @@ export function NavBar() {
           <Link to="/" className="flex items-center gap-2">
             <Activity className="w-7 h-7 text-google-blue-500" />
             <div className="leading-tight">
-              <div className="font-semibold text-google-gray-900">Feedback Analytics</div>
-              <div className="text-xs text-google-gray-600">Agent UI</div>
+              <div className="font-semibold text-lg text-google-gray-900">Feedback Analytics</div>
+              <div className="text-sm text-google-gray-600">Agent UI</div>
             </div>
           </Link>
 
@@ -33,7 +33,7 @@ export function NavBar() {
                 end={to === '/'}
                 className={({ isActive }) =>
                   [
-                    'inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    'inline-flex items-center gap-2 px-4 py-2 rounded-lg text-base font-medium transition-colors',
                     'focus:outline-none focus-visible:ring-2 focus-visible:ring-google-blue-500 focus-visible:ring-offset-2',
                     isActive
                       ? 'bg-google-blue-50 text-google-blue-700'
