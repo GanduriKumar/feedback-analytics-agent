@@ -5,8 +5,9 @@ import { OverviewCards } from '../components/charts/OverviewCards';
 import { SentimentChart } from '../components/charts/SentimentChart';
 import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart';
 import { ThemesChart } from '../components/charts/ThemesChart';
+import { UserTypeThemesChart } from '../components/charts/UserTypeThemesChart';
 import { ClusterTable } from '../components/reports/ClusterTable';
-import { generatePDFReport, generateCSVReport } from '../utils/export';
+import { generatePDFReport, generateCSVReport, generateIssuesCSVReport } from '../utils/export';
 
 export function Reports() {
   const { lastRun } = useAppStore();
@@ -54,7 +55,14 @@ export function Reports() {
               className="flex items-center gap-2 px-6 py-3 bg-google-green-500 text-white rounded-lg hover:bg-google-green-600"
             >
               <Table className="w-5 h-5" />
-              Download CSV
+              Download Summary CSV
+            </button>
+            <button
+              onClick={() => generateIssuesCSVReport(report)}
+              className="flex items-center gap-2 px-6 py-3 bg-google-blue-500 text-white rounded-lg hover:bg-google-blue-600"
+            >
+              <Table className="w-5 h-5" />
+              Download Issues CSV
             </button>
           </div>
         </div>
@@ -67,6 +75,8 @@ export function Reports() {
           <IssueCategoriesChart report={report} />
           <ThemesChart report={report} />
         </div>
+
+        <UserTypeThemesChart report={report} />
 
         <ClusterTable report={report} />
 

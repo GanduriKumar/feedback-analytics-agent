@@ -164,6 +164,49 @@ class ThemeClassifier:
                         return None
         return None
 
+    @staticmethod
+    def _shorten_theme(value: str | None) -> str:
+        raw = (value or '').strip().lower()
+        if not raw or raw in {"unknown", "unclassified", "general"}:
+            return "General"
+
+        mapping = {
+            "connectivity": "Connectivity",
+            "network": "Connectivity",
+            "bluetooth": "Connectivity",
+            "wifi": "Connectivity",
+            "battery": "Battery",
+            "charging": "Battery",
+            "power": "Battery",
+            "camera": "Camera",
+            "display": "Display",
+            "screen": "Display",
+            "performance": "Performance",
+            "stability": "Stability",
+            "crash": "Stability",
+            "freeze": "Stability",
+            "audio": "Audio",
+            "speaker": "Audio",
+            "mic": "Audio",
+            "update": "Update",
+            "software update": "Update",
+            "pricing": "Pricing",
+            "price": "Pricing",
+            "cost": "Pricing",
+            "design": "Design",
+            "ux": "UX",
+            "ui": "UX",
+            "usability": "UX",
+            "customer service": "Support",
+            "support": "Support",
+        }
+
+        for key, short in mapping.items():
+            if key in raw:
+                return short
+
+        return raw.title()
+
     def _fallback_theme(self, review: str) -> dict:
         lowered = review.lower()
 
@@ -227,7 +270,7 @@ class ThemeClassifier:
         return {
             "product": product,
             "sentiment": sentiment,
-            "theme": theme,
+            "theme": self._shorten_theme(theme),
             "classification": classification,
             "issue_description": issue_description,
         }
@@ -261,7 +304,7 @@ class ThemeClassifier:
             return {
                 "product": result.product or "unknown",
                 "sentiment": result.sentiment or "unknown",
-                "theme": result.theme or "general",
+                "theme": self._shorten_theme(result.theme),
                 "classification": result.classification or "feedback",
                 "issue_description": result.issue_description or "",
             }

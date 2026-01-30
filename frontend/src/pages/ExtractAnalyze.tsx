@@ -118,10 +118,10 @@ export function ExtractAnalyze() {
               View the full report to see detailed insights and recommendations.
             </p>
             <a
-              href="/reports"
+              href="/"
               className="px-6 py-2 bg-google-green-600 text-white rounded-lg hover:bg-google-green-700 inline-block"
             >
-              View Report
+              View Dashboard
             </a>
           </section>
         )}

@@ -1,11 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { BarChart3, FileText, Activity, Settings, Menu, X } from 'lucide-react';
+import { BarChart3, Activity, Settings, Menu, X } from 'lucide-react';
 
 const nav = [
   { to: '/', label: 'Dashboard', icon: BarChart3 },
   { to: '/analyze', label: 'Extract & Analyze', icon: Activity },
-  { to: '/reports', label: 'Reports', icon: FileText },
 ];
 
 export function NavBar() {

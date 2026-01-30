@@ -1,5 +1,6 @@
 import { FileText, Database, Tag, TrendingUp } from 'lucide-react';
 import type { AnalysisReport } from '../../types';
+import { getUniqueThemeCount } from '../../utils/report';
 
 interface Props {
   report: AnalysisReport;
@@ -27,7 +28,7 @@ export function OverviewCards({ report }: Props) {
     },
     {
       label: 'Themes Identified',
-      value: report.total_themes,
+      value: getUniqueThemeCount(report.themes),
       icon: TrendingUp,
       color: 'google-red',
     },

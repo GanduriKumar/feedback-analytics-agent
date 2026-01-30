@@ -4,6 +4,63 @@ function normalizeText(s?: string | null) {
   return (s || '').trim();
 }
 
+export function normalizeThemeCategory(theme?: string | null): string {
+  const raw = (theme || '').trim();
+  if (!raw) return 'General';
+  const cleaned = raw
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+  if (!cleaned || cleaned === 'unknown' || cleaned === 'unclassified') return 'General';
+
+  const mapping: Record<string, string> = {
+    connectivity: 'Connectivity',
+    bluetooth: 'Connectivity',
+    wifi: 'Connectivity',
+    network: 'Connectivity',
+    battery: 'Battery',
+    charging: 'Battery',
+    power: 'Battery',
+    camera: 'Camera',
+    display: 'Display',
+    screen: 'Display',
+    performance: 'Performance',
+    stability: 'Stability',
+    crash: 'Stability',
+    freeze: 'Stability',
+    audio: 'Audio',
+    speaker: 'Audio',
+    mic: 'Audio',
+    update: 'Update',
+    pricing: 'Pricing',
+    price: 'Pricing',
+    cost: 'Pricing',
+    design: 'Design',
+    ux: 'UX',
+    ui: 'UX',
+    usability: 'UX',
+    support: 'Support',
+    'customer service': 'Support',
+  };
+
+  for (const key of Object.keys(mapping)) {
+    if (cleaned.includes(key)) return mapping[key];
+  }
+
+  return cleaned
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+export function getUniqueThemeCount(themes: ThemeData[]): number {
+  const unique = new Set<string>();
+  themes.forEach((t) => unique.add(normalizeThemeCategory(t.theme)));
+  return unique.size;
+}
+
 export function deriveReport(args: {
   userType: UserType;
   searchQueries: string[];
