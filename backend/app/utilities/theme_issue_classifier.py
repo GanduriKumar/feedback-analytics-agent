@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import pandas as pd, csv
 import re
 import json
+from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from functools import lru_cache
 
 class Themes(BaseModel):
@@ -97,11 +98,14 @@ class ThemeClassifier:
     def __init__(self, llm_config: LLMConfig | None = None):
         self._model = CustomLLMModel(llm_config)
         self.chat = self._model.getchatinstance()
+        self._sentiment = SentimentIntensityAnalyzer()
         # Cache the prompt to avoid string concatenation overhead
         self._prompt_template = (
+            "You are a JSON-only response generator. "
             "Extract the following information from the given review text. "
-            "Provide the output in JSON format exactly matching this schema with fields: "
-            "sentiment, theme, classification, and issue_description.\n\n"
+            "Return ONLY a JSON object with these fields: product, sentiment, theme, classification, issue_description. "
+            "Allowed sentiment values: positive, negative, neutral. "
+            "Do not include any extra keys or any commentary.\n\n"
             "Review: {review}\n\n"
             "Output example:\n"
             '{{\n'
@@ -159,17 +163,79 @@ class ThemeClassifier:
                     except json.JSONDecodeError:
                         return None
         return None
+
+    def _fallback_theme(self, review: str) -> dict:
+        lowered = review.lower()
+
+        # Sentiment via VADER
+        score = self._sentiment.polarity_scores(review).get("compound", 0.0)
+        if score >= 0.05:
+            sentiment = "positive"
+        elif score <= -0.05:
+            sentiment = "negative"
+        else:
+            sentiment = "neutral"
+
+        # Product heuristic
+        if "pixel" in lowered:
+            product = "Pixel"
+        elif "iphone" in lowered:
+            product = "iPhone"
+        elif "android" in lowered:
+            product = "Android"
+        else:
+            product = "unknown"
+
+        theme = "general"
+        classification = "feedback"
+        keyword_map = [
+            ("bluetooth", "connectivity", "bug"),
+            ("connectivity", "connectivity", "bug"),
+            ("wifi", "connectivity", "bug"),
+            ("signal", "connectivity", "bug"),
+            ("network", "connectivity", "bug"),
+            ("battery", "battery", "complaint"),
+            ("charging", "battery", "complaint"),
+            ("camera", "camera", "complaint"),
+            ("screen", "display", "complaint"),
+            ("display", "display", "complaint"),
+            ("overheat", "performance", "bug"),
+            ("heat", "performance", "bug"),
+            ("lag", "performance", "bug"),
+            ("slow", "performance", "bug"),
+            ("crash", "stability", "bug"),
+            ("freeze", "stability", "bug"),
+            ("audio", "audio", "bug"),
+            ("speaker", "audio", "bug"),
+            ("mic", "audio", "bug"),
+            ("update", "software update", "bug"),
+            ("price", "pricing", "pricing"),
+            ("cost", "pricing", "pricing"),
+            ("expensive", "pricing", "pricing"),
+            ("design", "design", "feedback"),
+            ("build", "design", "feedback"),
+        ]
+
+        for keyword, mapped_theme, mapped_class in keyword_map:
+            if keyword in lowered:
+                theme = mapped_theme
+                classification = mapped_class
+                break
+
+        issue_description = review.strip()[:200]
+
+        return {
+            "product": product,
+            "sentiment": sentiment,
+            "theme": theme,
+            "classification": classification,
+            "issue_description": issue_description,
+        }
     
     def extract_themes(self, review: str) -> dict:
         """Extract themes with input validation and caching"""
         if not review or not isinstance(review, str):
-            return {
-                "product": "unknown",
-                "sentiment": "unknown",
-                "theme": "unknown",
-                "classification": "unknown",
-                "issue_description": "",
-            }
+            return self._fallback_theme("")
         
         # Use cached sanitization
         sanitized_review = self._sanitize_review(review)
@@ -193,18 +259,12 @@ class ThemeClassifier:
             result = Themes.model_validate(parsed)
 
             return {
-                "product": result.product,
-                "sentiment": result.sentiment,
-                "theme": result.theme,
-                "classification": result.classification,
-                "issue_description": result.issue_description,
+                "product": result.product or "unknown",
+                "sentiment": result.sentiment or "unknown",
+                "theme": result.theme or "general",
+                "classification": result.classification or "feedback",
+                "issue_description": result.issue_description or "",
             }
         except Exception as e:
             print(f"Error extracting themes: {e}")
-            return {
-                "product": "unknown",
-                "sentiment": "unknown",
-                "theme": "unknown",
-                "classification": "unknown",
-                "issue_description": "",
-            }
+            return self._fallback_theme(sanitized_review)

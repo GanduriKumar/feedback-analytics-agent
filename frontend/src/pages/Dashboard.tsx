@@ -4,6 +4,7 @@ import { useAppStore } from '../store/useAppStore';
 import { OverviewCards } from '../components/charts/OverviewCards';
 import { SentimentChart } from '../components/charts/SentimentChart';
 import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart';
+import { ThemesChart } from '../components/charts/ThemesChart';
 
 export function Dashboard() {
   const { lastRun, analysisHistory } = useAppStore();
@@ -70,9 +71,10 @@ export function Dashboard() {
         <OverviewCards report={lastRun} />
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <SentimentChart report={lastRun} />
           <IssueCategoriesChart report={lastRun} />
+          <ThemesChart report={lastRun} />
         </div>
 
         {/* Quick Actions */}

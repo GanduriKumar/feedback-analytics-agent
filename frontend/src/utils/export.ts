@@ -18,17 +18,19 @@ export function generateCSVReport(report: AnalysisReport) {
     ['Sentiment', 'Count', 'Percentage']
   ];
 
+  const sentimentDenominator = Math.max(report.total_themes || 0, 1);
   Object.entries(report.sentiment_distribution).forEach(([sentiment, count]) => {
-    const percentage = ((count / report.total_reviews) * 100).toFixed(1);
+    const percentage = ((count / sentimentDenominator) * 100).toFixed(1);
     rows.push([sentiment, count.toString(), `${percentage}%`]);
   });
 
   rows.push([''], ['Issue Categories'], ['Category', 'Count', 'Percentage']);
 
+  const issueDenominator = Math.max(report.total_themes || 0, 1);
   Object.entries(report.issue_categories)
     .sort(([, a], [, b]) => b - a)
     .forEach(([category, count]) => {
-      const percentage = ((count / report.total_reviews) * 100).toFixed(1);
+      const percentage = ((count / issueDenominator) * 100).toFixed(1);
       rows.push([category, count.toString(), `${percentage}%`]);
     });
 
