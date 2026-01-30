@@ -18,14 +18,14 @@ export function IssueCategoriesChart({ report }: Props) {
 
   return (
     <div className="bg-white rounded-lg border border-google-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-google-gray-900 mb-4">Issue Categories by Frequency</h3>
+      <h3 className="text-base font-semibold text-google-gray-900 mb-4">Issue Categories by Frequency</h3>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={data} layout="vertical" margin={{ left: 100 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E8EAED" />
-          <XAxis type="number" stroke="#5F6368" />
-          <YAxis type="category" dataKey="category" stroke="#5F6368" width={100} />
+          <XAxis type="number" stroke="#5F6368" tick={{ fontSize: 11 }} />
+          <YAxis type="category" dataKey="category" stroke="#5F6368" width={100} tick={{ fontSize: 11 }} />
           <Tooltip 
-            formatter={(value: number) => [`${value} reviews`, 'Count']}
+            formatter={(value) => [`${value ?? 0} reviews`, 'Count']}
             labelFormatter={(label) => `Category: ${label}`}
           />
           <Bar dataKey="count" radius={[0, 8, 8, 0]}>

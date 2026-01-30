@@ -8,8 +8,20 @@ interface Props {
 const COLORS = ['#1A73E8', '#1E8E3E', '#F9AB00', '#D93025', '#9AA0A6'];
 
 function normalizeTheme(theme?: string | null) {
-  const value = (theme || '').trim();
-  return value ? value : 'Unknown';
+  const raw = (theme || '').trim();
+  if (!raw) return 'General';
+  const cleaned = raw
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+
+  if (!cleaned || cleaned === 'unknown' || cleaned === 'unclassified') return 'General';
+
+  return cleaned
+    .split(' ')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 export function ThemesChart({ report }: Props) {
@@ -31,12 +43,12 @@ export function ThemesChart({ report }: Props) {
 
   return (
     <div className="bg-white rounded-lg border border-google-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-google-gray-900 mb-4">Themes by Frequency</h3>
+      <h3 className="text-base font-semibold text-google-gray-900 mb-4">Themes by Frequency</h3>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={data} layout="vertical" margin={{ left: 100 }}>
           <CartesianGrid strokeDasharray="3 3" stroke="#E8EAED" />
-          <XAxis type="number" stroke="#5F6368" />
-          <YAxis type="category" dataKey="theme" stroke="#5F6368" width={120} />
+          <XAxis type="number" stroke="#5F6368" tick={{ fontSize: 11 }} />
+          <YAxis type="category" dataKey="theme" stroke="#5F6368" width={120} tick={{ fontSize: 11 }} />
           <Tooltip
             formatter={(value) => [`${value ?? 0} themes`, 'Count']}
             labelFormatter={(label) => `Theme: ${label}`}

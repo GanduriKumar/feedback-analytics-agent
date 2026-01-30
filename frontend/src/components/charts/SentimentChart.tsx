@@ -19,9 +19,47 @@ export function SentimentChart({ report }: Props) {
     percentage: ((value / report.total_reviews) * 100).toFixed(1)
   }));
 
+  const renderLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    name,
+  }: {
+    cx?: number;
+    cy?: number;
+    midAngle?: number;
+    innerRadius?: number;
+    outerRadius?: number;
+    percent?: number;
+    name?: string;
+  }) => {
+    if (cx == null || cy == null || midAngle == null || innerRadius == null || outerRadius == null || percent == null) {
+      return null;
+    }
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
+    const radian = Math.PI / 180;
+    const x = cx + radius * Math.cos(-midAngle * radian);
+    const y = cy + radius * Math.sin(-midAngle * radian);
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="#5F6368"
+        textAnchor={x > cx ? 'start' : 'end'}
+        dominantBaseline="central"
+        fontSize={11}
+      >
+        {`${name}: ${(percent * 100).toFixed(1)}%`}
+      </text>
+    );
+  };
+
   return (
     <div className="bg-white rounded-lg border border-google-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-google-gray-900 mb-4">Sentiment Distribution</h3>
+      <h3 className="text-base font-semibold text-google-gray-900 mb-4">Sentiment Distribution</h3>
       <ResponsiveContainer width="100%" height={300}>
         <PieChart>
           <Pie
@@ -29,7 +67,7 @@ export function SentimentChart({ report }: Props) {
             cx="50%"
             cy="50%"
             labelLine={false}
-            label={({ name, percentage }) => `${name}: ${percentage}%`}
+            label={renderLabel}
             outerRadius={100}
             fill="#8884d8"
             dataKey="value"
@@ -38,8 +76,8 @@ export function SentimentChart({ report }: Props) {
               <Cell key={entry.name} fill={COLORS[entry.name.toLowerCase() as keyof typeof COLORS]} />
             ))}
           </Pie>
-          <Tooltip formatter={(value: number) => `${value} reviews`} />
-          <Legend />
+          <Tooltip formatter={(value) => `${value ?? 0} reviews`} />
+          <Legend wrapperStyle={{ fontSize: 11 }} />
         </PieChart>
       </ResponsiveContainer>
     </div>
