@@ -19,7 +19,7 @@ def _default_search_queries_path() -> Path:
     return backend_root / "config" / "search_queries.csv"
 
 
-def fetch_reddit_reviews(queries: Optional[List[str]] = None) -> list:
+def fetch_reddit_reviews(queries: Optional[List[str]] = None, time_filter: Optional[str] = None) -> list:
     """Fetch Reddit reviews for the provided queries.
 
     If `queries` is not provided (or empty), falls back to reading
@@ -30,7 +30,7 @@ def fetch_reddit_reviews(queries: Optional[List[str]] = None) -> list:
         df = pd.read_csv(_default_search_queries_path())
         normalized_queries = [str(v).strip() for v in df.get('queries', []) if str(v).strip()]
 
-    reddit = RedditHandler(queries=normalized_queries)
+    reddit = RedditHandler(queries=normalized_queries, time_filter=time_filter)
     return reddit.fetch_posts()
 
 def clean_reviews(reviews:list) -> list:

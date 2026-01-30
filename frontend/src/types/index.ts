@@ -7,6 +7,8 @@ export type UserType =
 
 export type DataSource = 'reddit' | 'twitter' | 'app-store' | 'play-store';
 
+export type TimeFilter = 'hour' | 'day' | 'week' | 'month' | 'year' | 'all';
+
 export type PipelineStage =
   | 'idle'
   | 'fetching'
@@ -15,7 +17,8 @@ export type PipelineStage =
   | 'storing'
   | 'analyzing'
   | 'complete'
-  | 'error';
+  | 'error'
+  | 'aborted';
 
 export interface PipelineProgress {
   stage: PipelineStage;
@@ -61,6 +64,7 @@ export interface CollectResponse {
   // optional metadata (if backend provides)
   queries_used?: string[];
   sources_used?: string[];
+  time_filter?: TimeFilter;
   warnings?: string[];
 }
 

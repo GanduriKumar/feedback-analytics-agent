@@ -3,6 +3,7 @@ import { Play, Settings } from 'lucide-react';
 import { UserTypeSelector } from '../components/analyze/UserTypeSelector';
 import { SearchInput } from '../components/analyze/SearchInput';
 import { SourceSelector } from '../components/analyze/SourceSelector';
+import { TimeFilterSelector } from '../components/analyze/TimeFilterSelector';
 import { LLMConfig } from '../components/analyze/LLMConfig';
 import { ProgressTracker } from '../components/analyze/ProgressTracker';
 import { useAppStore } from '../store/useAppStore';
@@ -11,7 +12,7 @@ import { healthCheck } from '../services/api';
 
 export function ExtractAnalyze() {
   const { userType, searchQueries, selectedSources, isRunning, lastRun } = useAppStore();
-  const { runPipeline, error } = usePipeline();
+  const { runPipeline, pausePipeline, resumePipeline, abortPipeline, error, isPaused } = usePipeline();
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'starting' | 'up'>('checking');
   const [backendMessage, setBackendMessage] = useState('Checking backend status...');
@@ -57,6 +58,7 @@ export function ExtractAnalyze() {
           <UserTypeSelector />
           <SearchInput />
           <SourceSelector />
+          <TimeFilterSelector />
 
           {/* Advanced Settings Toggle */}
           <div>
@@ -85,6 +87,26 @@ export function ExtractAnalyze() {
               <Play className="w-5 h-5" />
               {isRunning ? 'Running...' : 'Run Analysis Pipeline'}
             </button>
+            {isRunning && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={isPaused ? resumePipeline : pausePipeline}
+                  className={`px-4 py-3 rounded-lg text-sm font-semibold border ${
+                    isPaused
+                      ? 'border-google-green-500 text-google-green-700 bg-google-green-50 hover:bg-google-green-100'
+                      : 'border-google-amber-500 text-google-amber-700 bg-google-amber-50 hover:bg-google-amber-100'
+                  }`}
+                >
+                  {isPaused ? 'Resume' : 'Pause'}
+                </button>
+                <button
+                  onClick={abortPipeline}
+                  className="px-4 py-3 rounded-lg text-sm font-semibold border border-google-red-500 text-google-red-700 bg-google-red-50 hover:bg-google-red-100"
+                >
+                  Abort
+                </button>
+              </div>
+            )}
             <div className="flex items-center gap-2 text-sm">
               <span
                 className={`h-2.5 w-2.5 rounded-full ${

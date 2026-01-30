@@ -95,25 +95,26 @@ export async function getCapabilities() {
   return data;
 }
 
-export async function collectReviews(params?: { queries?: string[]; sources?: string[] }) {
-  // Backend currently ignores query params unless implemented; safe to send.
+export async function collectReviews(params?: { queries?: string[]; sources?: string[]; time_filter?: string; signal?: AbortSignal }) {
   const { data } = await api.get<CollectResponse>('/tools/collect', {
     params: {
       queries: params?.queries?.join(',') || undefined,
       sources: params?.sources?.join(',') || undefined,
+      time_filter: params?.time_filter || undefined,
     },
+    signal: params?.signal,
   });
   return data;
 }
 
-export async function clusterReviews(reviews: string[], llmConfig?: ClusterRequest['llm_config']) {
+export async function clusterReviews(reviews: string[], llmConfig?: ClusterRequest['llm_config'], signal?: AbortSignal) {
   const payload: ClusterRequest = { reviews, llm_config: llmConfig };
-  const { data } = await api.post<ClusterResponse>('/tools/cluster', payload);
+  const { data } = await api.post<ClusterResponse>('/tools/cluster', payload, { signal });
   return data;
 }
 
-export async function analyzeFeedback(body: AnalyzeRequest) {
-  const { data } = await api.post<AnalyzeResponse>('/analyze', body);
+export async function analyzeFeedback(body: AnalyzeRequest, signal?: AbortSignal) {
+  const { data } = await api.post<AnalyzeResponse>('/analyze', body, { signal });
   return data;
 }
 

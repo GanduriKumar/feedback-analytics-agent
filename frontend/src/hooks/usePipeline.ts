@@ -1,8 +1,9 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useAppStore } from '../store/useAppStore';
 import { collectReviews, clusterReviews, analyzeFeedback } from '../services/api';
 import type { AnalysisReport } from '../types';
 import { deriveReport } from '../utils/report';
+import axios from 'axios';
 
 function normalizeCollectedReviews(reviews: Array<{ post_title: string; self_text: string } | string>): string[] {
   const texts: string[] = [];
@@ -31,20 +32,47 @@ export function usePipeline() {
     searchQueries, 
     selectedSources, 
     userType, 
-    llmConfig 
+    llmConfig,
+    timeFilter,
+    isPaused,
+    setPaused,
+    resetRunState,
   } = useAppStore();
   const [error, setError] = useState<string | null>(null);
+
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const abortedRef = useRef(false);
+
+  const waitIfPaused = async () => {
+    while (useAppStore.getState().isPaused) {
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      if (abortedRef.current) {
+        throw new Error('Pipeline aborted');
+      }
+    }
+    if (abortedRef.current) {
+      throw new Error('Pipeline aborted');
+    }
+  };
 
   const runPipeline = useCallback(async () => {
     try {
       setError(null);
+      abortedRef.current = false;
+      setPaused(false);
+      abortControllerRef.current = new AbortController();
+      const signal = abortControllerRef.current.signal;
 
       // Stage 1: Fetching
       setProgress({ stage: 'fetching', message: 'Extracting reviews from sources...', progress: 10 });
       const collectResponse = await collectReviews({
         queries: searchQueries,
         sources: selectedSources,
+        time_filter: timeFilter,
+        signal,
       });
+
+      await waitIfPaused();
 
       const rawTexts = normalizeCollectedReviews(collectResponse.reviews);
       const reviewCount = rawTexts.length;
@@ -60,6 +88,8 @@ export function usePipeline() {
       const cleaned = rawTexts.map(cleanText).filter(Boolean);
       const unique = Array.from(new Set(cleaned));
       await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      await waitIfPaused();
 
       // Stage 3: Embedding
       setProgress({
@@ -78,7 +108,7 @@ export function usePipeline() {
         details: { reviewsCleaned: unique.length }
       });
       
-      const clusterResponse = await clusterReviews(unique, llmConfig);
+      const clusterResponse = await clusterReviews(unique, llmConfig, signal);
 
       // Stage 5: Analyzing
       setProgress({
@@ -94,7 +124,9 @@ export function usePipeline() {
         n_results: 50,
         user_type: userType,
         llm_config: llmConfig,
-      });
+      }, signal);
+      
+      await waitIfPaused();
 
       // Complete
       setProgress({ stage: 'complete', message: 'Analysis complete!', progress: 100 });
@@ -120,10 +152,34 @@ export function usePipeline() {
       addToHistory(report);
 
     } catch (err: any) {
-      setError(err.message || 'Pipeline execution failed');
-      setProgress({ stage: 'error', message: err.message || 'Pipeline execution failed', progress: 0 });
+      const isAbort = abortedRef.current || axios.isCancel?.(err) || err?.name === 'CanceledError' || err?.message === 'Pipeline aborted';
+      if (isAbort) {
+        setError('Pipeline aborted');
+        setProgress({ stage: 'aborted', message: 'Pipeline aborted by user', progress: 0 });
+      } else {
+        setError(err.message || 'Pipeline execution failed');
+        setProgress({ stage: 'error', message: err.message || 'Pipeline execution failed', progress: 0 });
+      }
     }
-  }, [searchQueries, selectedSources, userType, llmConfig, setProgress, setLastRun, addToHistory]);
+  }, [searchQueries, selectedSources, userType, llmConfig, timeFilter, setProgress, setLastRun, addToHistory, setPaused]);
 
-  return { runPipeline, error };
+  const pausePipeline = useCallback(() => {
+    setPaused(true);
+    const current = useAppStore.getState().progress;
+    setProgress({ ...current, message: 'Paused' });
+  }, [setPaused, setProgress]);
+
+  const resumePipeline = useCallback(() => {
+    setPaused(false);
+  }, [setPaused]);
+
+  const abortPipeline = useCallback(() => {
+    abortedRef.current = true;
+    setPaused(false);
+    abortControllerRef.current?.abort();
+    resetRunState();
+    setProgress({ stage: 'aborted', message: 'Pipeline aborted by user', progress: 0 });
+  }, [resetRunState, setProgress, setPaused]);
+
+  return { runPipeline, pausePipeline, resumePipeline, abortPipeline, error, isPaused };
 }

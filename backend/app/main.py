@@ -329,6 +329,7 @@ async def search_reviews(request: SearchRequest):
 async def collect_reviews(
     queries: Optional[str] = Query(None, description="Comma-separated search queries"),
     sources: Optional[str] = Query(None, description="Comma-separated sources (e.g., reddit)"),
+    time_filter: Optional[str] = Query(None, description="Reddit time filter: hour/day/week/month/year/all"),
 ):
     """Fetch raw reviews based on selected sources and queries.
 
@@ -356,7 +357,7 @@ async def collect_reviews(
                 detail=f"No supported sources selected. Supported: {sorted(supported_sources)}",
             )
 
-        reviews = await asyncio.to_thread(fetch_reddit_reviews, requested_queries)
+        reviews = await asyncio.to_thread(fetch_reddit_reviews, requested_queries, time_filter)
         
         if not reviews:
             return {
@@ -379,6 +380,8 @@ async def collect_reviews(
         # Optional metadata for UI
         resp["queries_used"] = requested_queries
         resp["sources_used"] = ["reddit"]
+        if time_filter:
+            resp["time_filter"] = time_filter
         if unsupported:
             resp["warnings"] = [f"Unsupported sources ignored: {', '.join(unsupported)}"]
 

@@ -76,10 +76,10 @@ cd backend/app
 python main.py
 ```
 
-Or with uvicorn:
+Or with uvicorn (faster reload watching only code/config):
 
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir app --reload-dir config
 ```
 
 ## API Documentation
@@ -154,7 +154,7 @@ Frontend origins allowed:
 ### Running in Development Mode
 
 ```bash
-uvicorn app.main:app --reload --port 8000
+uvicorn app.main:app --reload --reload-dir app --reload-dir config --port 8000
 ```
 
 ### Testing Endpoints

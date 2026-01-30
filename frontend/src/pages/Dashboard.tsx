@@ -5,7 +5,7 @@ import { OverviewCards } from '../components/charts/OverviewCards';
 import { SentimentChart } from '../components/charts/SentimentChart';
 import { IssueCategoriesChart } from '../components/charts/IssueCategoriesChart';
 import { ThemesChart } from '../components/charts/ThemesChart';
-import { generatePDFReport, generateCSVReport, generateIssuesCSVReport } from '../utils/export';
+import { generatePDFReport, generateIssuesCSVReport } from '../utils/export';
 
 export function Dashboard() {
   const { lastRun, analysisHistory, selectedReportId, setSelectedReport } = useAppStore();
@@ -99,13 +99,6 @@ export function Dashboard() {
           >
             <FileText className="w-5 h-5" />
             Download PDF
-          </button>
-          <button
-            onClick={() => generateCSVReport(selectedReport)}
-            className="flex items-center gap-2 px-6 py-3 bg-google-green-500 text-white rounded-lg hover:bg-google-green-600"
-          >
-            <Table className="w-5 h-5" />
-            Download Summary CSV
           </button>
           <button
             onClick={() => generateIssuesCSVReport(selectedReport)}

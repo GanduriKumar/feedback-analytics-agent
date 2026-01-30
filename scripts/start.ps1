@@ -11,7 +11,7 @@ Write-Host "Starting backend in a new PowerShell window..." -ForegroundColor Cya
 Start-Process -FilePath "powershell.exe" -WorkingDirectory $backendPath -ArgumentList @(
     "-NoExit",
     "-Command",
-    "`$host.UI.RawUI.WindowTitle='FAA Backend'; Set-Location '$backendPath'; python -m uvicorn app.main:app --reload --port $BackendPort"
+    "`$host.UI.RawUI.WindowTitle='FAA Backend'; Set-Location '$backendPath'; python -m uvicorn app.main:app --reload --reload-dir app --reload-dir config --port $BackendPort"
 )
 
 Write-Host "Starting frontend in a new PowerShell window..." -ForegroundColor Cyan

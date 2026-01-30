@@ -31,7 +31,7 @@ class RedditHandler:
 
 # -----------------------------------------------------------------
 # constructor
-    def __init__(self, queries:list):
+    def __init__(self, queries:list, time_filter: str | None = None):
         """
         Initialize Reddit handler with search queries.
         
@@ -53,6 +53,11 @@ class RedditHandler:
         
         # Store search queries for later use
         self.client_search_queries = queries
+
+        # Time filter (hour, day, week, month, year, all)
+        allowed_filters = {"hour", "day", "week", "month", "year", "all"}
+        tf = (time_filter or os.getenv('TIME_FILTER', 'week')).lower()
+        self.time_filter = tf if tf in allowed_filters else 'week'
         
         # Define default subreddits for mobile device feedback analysis
         default_subreddits = [
@@ -146,7 +151,7 @@ class RedditHandler:
             
             search_results = subreddit.search(
                 query=f"selftext:{query}",
-                time_filter=os.getenv('TIME_FILTER', 'week'),
+                time_filter=self.time_filter,
                 limit=None,
                 sort="relevance",
                 syntax="lucene"

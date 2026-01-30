@@ -13,7 +13,7 @@ function getStageStatus(stageKey: string, currentStage: string) {
   const currentIndex = stages.findIndex((s) => s.key === currentStage);
   const stageIndex = stages.findIndex((s) => s.key === stageKey);
 
-  if (currentStage === 'error') return 'error';
+  if (currentStage === 'error' || currentStage === 'aborted') return 'error';
   if (currentStage === 'complete') return 'complete';
   if (stageIndex < currentIndex) return 'complete';
   if (stageIndex === currentIndex) return 'active';
@@ -69,6 +69,11 @@ export function ProgressTracker() {
       {progress.stage === 'error' && (
         <div className="rounded-lg border border-google-red-200 bg-google-red-50 p-3 text-sm text-google-red-700">
           {progress.message || 'Something went wrong.'}
+        </div>
+      )}
+      {progress.stage === 'aborted' && (
+        <div className="rounded-lg border border-google-gray-200 bg-google-gray-100 p-3 text-sm text-google-gray-700">
+          {progress.message || 'Pipeline aborted by user.'}
         </div>
       )}
     </section>

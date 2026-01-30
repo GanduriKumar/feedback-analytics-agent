@@ -1,9 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AnalysisReport, DataSource, LLMConfig, PipelineProgress, UserType } from '../types';
+import type { AnalysisReport, DataSource, LLMConfig, PipelineProgress, UserType, TimeFilter } from '../types';
 
 const STORE_NAME = 'feedback-analytics-ui';
-const STORE_VERSION = 3;
+const STORE_VERSION = 5;
 const MAX_HISTORY = 20;
 
 function normalizeQuery(q: string): string {
@@ -25,14 +25,19 @@ interface AppState {
   setSelectedSources: (s: DataSource[]) => void;
   toggleSource: (s: DataSource) => void;
 
+  timeFilter: TimeFilter;
+  setTimeFilter: (t: TimeFilter) => void;
+
   llmConfig: LLMConfig;
   setLLMConfig: (c: LLMConfig) => void;
 
   // pipeline
   isRunning: boolean;
+  isPaused: boolean;
   progress: PipelineProgress;
   setProgress: (p: PipelineProgress) => void;
   lastError: string | null;
+  setPaused: (v: boolean) => void;
 
   // results
   lastRun: AnalysisReport | null;
@@ -57,6 +62,7 @@ const defaultLLM: LLMConfig = {
 
 const defaultProgress: PipelineProgress = { stage: 'idle', message: '', progress: 0 };
 const defaultSources: DataSource[] = ['reddit'];
+const defaultTimeFilter: TimeFilter = 'all';
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -86,18 +92,23 @@ export const useAppStore = create<AppState>()(
           return { selectedSources: next };
         }),
 
+      timeFilter: defaultTimeFilter,
+      setTimeFilter: (t) => set({ timeFilter: t }),
+
       llmConfig: defaultLLM,
       setLLMConfig: (c) => set({ llmConfig: c }),
 
       isRunning: false,
+      isPaused: false,
       progress: defaultProgress,
       lastError: null,
       setProgress: (p) =>
         set({
           progress: p,
-          isRunning: p.stage !== 'idle' && p.stage !== 'complete' && p.stage !== 'error',
+          isRunning: !['idle', 'complete', 'error', 'aborted'].includes(p.stage),
           lastError: p.stage === 'error' ? p.message : null,
         }),
+      setPaused: (v) => set({ isPaused: v }),
 
       lastRun: null,
       analysisHistory: [],
@@ -119,6 +130,7 @@ export const useAppStore = create<AppState>()(
       resetRunState: () =>
         set({
           isRunning: false,
+          isPaused: false,
           progress: defaultProgress,
           lastError: null,
         }),
@@ -135,24 +147,24 @@ export const useAppStore = create<AppState>()(
       name: STORE_NAME,
       version: STORE_VERSION,
       migrate: (persisted: any, version) => {
-        // v1 persisted only {lastRun, analysisHistory, llmConfig}
-        if (version === 1) {
-          return {
-            ...persisted,
-            userType: null,
-            searchQueries: [],
-            selectedSources: defaultSources,
-            selectedReportId: persisted?.lastRun?.id ?? null,
-          };
+        const next = { ...persisted } as any;
+
+        if (version <= 1) {
+          next.userType = null;
+          next.searchQueries = [];
+          next.selectedSources = defaultSources;
         }
-        // v2 -> v3: add selectedReportId
-        if (version === 2) {
-          return {
-            ...persisted,
-            selectedReportId: persisted?.lastRun?.id ?? null,
-          };
+        if (version <= 2) {
+          next.selectedReportId = persisted?.lastRun?.id ?? null;
         }
-        return persisted;
+        if (version <= 3 || next.timeFilter === undefined) {
+          next.timeFilter = persisted?.timeFilter || defaultTimeFilter;
+        }
+        if (version <= 4 || next.isPaused === undefined) {
+          next.isPaused = false;
+        }
+
+        return next;
       },
       partialize: (state) => ({
         lastRun: state.lastRun,
@@ -161,7 +173,9 @@ export const useAppStore = create<AppState>()(
         userType: state.userType,
         searchQueries: state.searchQueries,
         selectedSources: state.selectedSources,
+        timeFilter: state.timeFilter,
         selectedReportId: state.selectedReportId,
+        isPaused: state.isPaused,
       }),
     }
   )
