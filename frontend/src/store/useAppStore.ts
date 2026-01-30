@@ -3,7 +3,7 @@ import { persist } from 'zustand/middleware';
 import type { AnalysisReport, DataSource, LLMConfig, PipelineProgress, UserType } from '../types';
 
 const STORE_NAME = 'feedback-analytics-ui';
-const STORE_VERSION = 2;
+const STORE_VERSION = 3;
 const MAX_HISTORY = 20;
 
 function normalizeQuery(q: string): string {
@@ -37,8 +37,10 @@ interface AppState {
   // results
   lastRun: AnalysisReport | null;
   analysisHistory: AnalysisReport[];
+  selectedReportId: string | null;
   setLastRun: (r: AnalysisReport) => void;
   addToHistory: (r: AnalysisReport) => void;
+  setSelectedReport: (id: string | null) => void;
 
   clearHistory: () => void;
   deleteFromHistory: (id: string) => void;
@@ -99,11 +101,13 @@ export const useAppStore = create<AppState>()(
 
       lastRun: null,
       analysisHistory: [],
-      setLastRun: (r) => set({ lastRun: r }),
+      selectedReportId: null,
+      setLastRun: (r) => set({ lastRun: r, selectedReportId: r.id }),
       addToHistory: (r) =>
         set((state) => ({
           analysisHistory: [r, ...state.analysisHistory].slice(0, MAX_HISTORY),
         })),
+      setSelectedReport: (id) => set({ selectedReportId: id }),
 
       clearHistory: () => set({ analysisHistory: [] }),
       deleteFromHistory: (id) =>
@@ -138,6 +142,14 @@ export const useAppStore = create<AppState>()(
             userType: null,
             searchQueries: [],
             selectedSources: defaultSources,
+            selectedReportId: persisted?.lastRun?.id ?? null,
+          };
+        }
+        // v2 -> v3: add selectedReportId
+        if (version === 2) {
+          return {
+            ...persisted,
+            selectedReportId: persisted?.lastRun?.id ?? null,
           };
         }
         return persisted;
@@ -149,6 +161,7 @@ export const useAppStore = create<AppState>()(
         userType: state.userType,
         searchQueries: state.searchQueries,
         selectedSources: state.selectedSources,
+        selectedReportId: state.selectedReportId,
       }),
     }
   )
